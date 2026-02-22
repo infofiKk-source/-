@@ -4,10 +4,9 @@ import { useSearchParams } from "next/navigation"
 import { ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { emotions } from "@/lib/data"
-import { contents, posts as samplePosts } from "@/src/data/sample"
+import { posts as samplePosts } from "@/src/data/sample"
 import type { Emotion } from "@/lib/data"
-import type { Content, Post } from "@/src/data/sample"
-import { ContentCard } from "@/components/content-card"
+import type { Post } from "@/src/data/sample"
 import { CommunityCard } from "@/components/community-card"
 import { EmotionTag } from "@/components/emotion-tag"
 import { HelpNotice } from "@/components/help-notice"
@@ -118,10 +117,6 @@ function FeedInner() {
     return date.toLocaleDateString("ko-KR")
   }
 
-  const filteredContent = activeFilter
-    ? contents.filter((c) => c.tags.includes(activeFilter)).slice(0, 5)
-    : contents.slice(0, 5)
-
   const filteredPosts = displayPosts
 
   return (
@@ -178,51 +173,26 @@ function FeedInner() {
         </div>
       </section>
 
-      {/* Recommended content */}
-      <section className="px-5 pt-4" aria-label="추천 콘텐츠">
-        <h2 className="mb-4 text-base font-semibold text-foreground">
-          {activeFilter
-            ? `${activeFilter}을 위한 추천 콘텐츠`
-            : "당신을 위한 추천 콘텐츠"}
-        </h2>
-        {isLoading ? (
-          <div className="flex flex-col items-center gap-3 py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">로딩 중...</p>
-          </div>
-        ) : filteredContent.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {filteredContent.map((content) => (
-              <ContentCard key={content.id} content={content} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3 py-12">
-            <div className="rounded-full bg-warm-glow/20 p-4">
-              <ArrowLeft className="h-6 w-6 text-primary/60 rotate-180" />
-            </div>
-            <p className="text-sm font-medium text-foreground">
-              {activeFilter ? `${activeFilter}을 위한 콘텐츠가 아직 없어요` : "추천 콘텐츠가 없어요"}
-            </p>
-            <p className="text-xs text-muted-foreground text-center max-w-xs">
-              곧 더 많은 콘텐츠를 준비할게요. 조금만 기다려주세요.
-            </p>
-          </div>
-        )}
-      </section>
-
       {/* Community posts */}
-      <section className="px-5 pt-8 pb-6" aria-label="비슷한 마음을 가진 사람들">
+      <section className="px-5 pt-4 pb-6" aria-label="비슷한 마음을 가진 사람들">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-foreground">
             비슷한 마음의 이야기
           </h2>
-          <Link
-            href="/post/new"
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            나도 적어보기
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/contents"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              추천 콘텐츠
+            </Link>
+            <Link
+              href="/post/new"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              나도 적어보기
+            </Link>
+          </div>
         </div>
         {isLoading ? (
           <div className="flex flex-col items-center gap-3 py-12">
