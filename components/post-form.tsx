@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Send } from "lucide-react"
 import Link from "next/link"
@@ -8,6 +8,8 @@ import { emotions } from "@/lib/data"
 import type { Emotion } from "@/lib/data"
 import { EmotionTag } from "@/components/emotion-tag"
 import { containsBlockedWords } from "@/lib/utils"
+import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
+import { createPost } from "@/lib/firebase/posts"
 
 export function PostForm() {
   const router = useRouter()
@@ -16,6 +18,30 @@ export function PostForm() {
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [submitted, setSubmitted] = useState(false)
   const [hasBlockedWords, setHasBlockedWords] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+
+  // 컴포넌트 마운트 시 익명 로그인
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const user = getCurrentUser()
+        if (!user) {
+          await signInAnonymouslyUser()
+          setAuthError(null)
+        }
+      } catch (error: any) {
+        const errorMessage = error?.message || error?.code || "인증에 실패했습니다."
+        console.error("인증 초기화 실패:", {
+          code: error?.code,
+          message: error?.message,
+          fullError: error,
+        })
+        setAuthError(`인증 오류: ${errorMessage}`)
+      }
+    }
+    initAuth()
+  }, [])
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value
@@ -23,28 +49,60 @@ export function PostForm() {
     setHasBlockedWords(containsBlockedWords(newContent))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedMood || !content.trim()) return
     if (hasBlockedWords) {
       alert("부적절한 단어가 포함되어 있습니다. 다시 작성해주세요.")
       return
     }
     
-    // 새 글을 sessionStorage에 저장 (새 구조)
-    const newPost = {
-      id: `p-${Date.now()}`,
-      mood_tags: [selectedMood],
-      body: content.trim(),
-      created_at: "방금 전",
-      reactions_count: 0,
-      comments_count: 0,
-    }
+    setIsLoading(true)
     
-    sessionStorage.setItem("newPost", JSON.stringify(newPost))
-    setSubmitted(true)
-    setTimeout(() => {
-      router.push("/feed")
-    }, 2000)
+    try {
+      // 익명 로그인 확인
+      let user = getCurrentUser()
+      if (!user) {
+        try {
+          user = await signInAnonymouslyUser()
+          setAuthError(null)
+        } catch (authErr: any) {
+          const errorMessage = authErr?.message || authErr?.code || "인증에 실패했습니다."
+          console.error("익명 로그인 실패:", {
+            code: authErr?.code,
+            message: authErr?.message,
+            fullError: authErr,
+          })
+          setAuthError(`인증 오류: ${errorMessage}`)
+          setIsLoading(false)
+          return
+        }
+      }
+      
+      if (!user) {
+        throw new Error("로그인에 실패했습니다.")
+      }
+      
+      // Firebase에 글 저장
+      await createPost({
+        mood_tags: [selectedMood],
+        body: content.trim(),
+        user_id: user.uid,
+      })
+      
+      setSubmitted(true)
+      setTimeout(() => {
+        router.push("/feed")
+      }, 2000)
+    } catch (error: any) {
+      const errorMessage = error?.message || error?.code || "알 수 없는 오류가 발생했습니다."
+      console.error("글 작성 실패:", {
+        code: error?.code,
+        message: error?.message,
+        fullError: error,
+      })
+      setAuthError(`글 작성 실패: ${errorMessage}`)
+      setIsLoading(false)
+    }
   }
 
   if (submitted) {
@@ -83,10 +141,10 @@ export function PostForm() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!selectedMood || !content.trim() || hasBlockedWords}
+            disabled={!selectedMood || !content.trim() || hasBlockedWords || isLoading}
             className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-all disabled:opacity-40"
           >
-            올리기
+            {isLoading ? "올리는 중..." : "올리기"}
           </button>
         </div>
       </header>
@@ -167,6 +225,20 @@ export function PostForm() {
           </button>
         </div>
       </section>
+
+      {/* Error message */}
+      {authError && (
+        <section className="px-5 pt-4">
+          <div className="rounded-2xl border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm font-medium text-destructive">
+              {authError}
+            </p>
+            <p className="mt-2 text-xs text-destructive/70">
+              네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Encouragement */}
       <section className="mt-auto px-5 pt-8">

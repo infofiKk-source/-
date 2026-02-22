@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation"
 import { ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { emotions } from "@/lib/data"
-import { contents, posts } from "@/src/data/sample"
+import { contents, posts as samplePosts } from "@/src/data/sample"
 import type { Emotion } from "@/lib/data"
 import type { Content, Post } from "@/src/data/sample"
 import { ContentCard } from "@/components/content-card"
@@ -12,37 +12,116 @@ import { CommunityCard } from "@/components/community-card"
 import { EmotionTag } from "@/components/emotion-tag"
 import { HelpNotice } from "@/components/help-notice"
 import { useState, useEffect, Suspense } from "react"
+import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
+import { getPosts, type Post as FirebasePost } from "@/lib/firebase/posts"
+import { Timestamp } from "firebase/firestore"
 
 function FeedInner() {
   const searchParams = useSearchParams()
   const moodParam = searchParams.get("mood") as Emotion | null
   const messageParam = searchParams.get("message")
   const [activeFilter, setActiveFilter] = useState<Emotion | null>(moodParam)
-  const [displayPosts, setDisplayPosts] = useState<Post[]>(posts)
+  const [displayPosts, setDisplayPosts] = useState<Post[]>(samplePosts)
   const [isLoading, setIsLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
 
-  // sessionStorage에서 새로 작성한 글 확인
+  // Firebase에서 글 가져오기
   useEffect(() => {
-    const newPostData = sessionStorage.getItem("newPost")
-    if (newPostData) {
+    const loadPosts = async () => {
       try {
-        const newPost: Post = JSON.parse(newPostData)
-        setDisplayPosts((prev) => [newPost, ...prev])
-        sessionStorage.removeItem("newPost")
-      } catch (e) {
-        console.error("Failed to parse new post data", e)
+        // 익명 로그인
+        let user = getCurrentUser()
+        if (!user) {
+          try {
+            user = await signInAnonymouslyUser()
+            setAuthError(null)
+          } catch (authErr: any) {
+            const errorMessage = authErr?.message || authErr?.code || "인증에 실패했습니다."
+            console.error("익명 로그인 실패:", {
+              code: authErr?.code,
+              message: authErr?.message,
+              fullError: authErr,
+            })
+            setAuthError(`인증 오류: ${errorMessage}`)
+            // 실패 시 샘플 데이터만 사용
+            const filtered = activeFilter
+              ? samplePosts.filter((p) => p.mood_tags.includes(activeFilter))
+              : samplePosts
+            setDisplayPosts(filtered.slice(0, 5))
+            setIsLoading(false)
+            return
+          }
+        }
+
+        // Firebase에서 글 가져오기
+        const firebasePosts = await getPosts(activeFilter || undefined, 5)
+        
+        // Firebase Post를 Post 형식으로 변환
+        const convertedPosts: Post[] = firebasePosts.map((p: FirebasePost) => ({
+          id: p.id || "",
+          mood_tags: p.mood_tags,
+          body: p.body,
+          created_at: p.created_at instanceof Timestamp
+            ? formatTimestamp(p.created_at)
+            : typeof p.created_at === "string"
+            ? p.created_at
+            : "방금 전",
+          reactions_count: p.reactions_count || 0,
+          comments_count: p.comments_count || 0,
+        }))
+
+        // 샘플 데이터와 Firebase 데이터 합치기
+        const allPosts = [...convertedPosts, ...samplePosts]
+        
+        // 필터링
+        const filtered = activeFilter
+          ? allPosts.filter((p) => p.mood_tags.includes(activeFilter))
+          : allPosts
+
+        setDisplayPosts(filtered.slice(0, 5))
+        setAuthError(null)
+      } catch (error: any) {
+        const errorMessage = error?.message || error?.code || "데이터를 불러오는데 실패했습니다."
+        console.error("글 로드 실패:", {
+          code: error?.code,
+          message: error?.message,
+          fullError: error,
+        })
+        setAuthError(`데이터 로드 실패: ${errorMessage}`)
+        // 실패 시 샘플 데이터만 사용
+        const filtered = activeFilter
+          ? samplePosts.filter((p) => p.mood_tags.includes(activeFilter))
+          : samplePosts
+        setDisplayPosts(filtered.slice(0, 5))
+      } finally {
+        setIsLoading(false)
       }
     }
-    setIsLoading(false)
-  }, [])
+
+    loadPosts()
+  }, [activeFilter])
+
+  // Timestamp를 읽기 쉬운 형식으로 변환
+  const formatTimestamp = (timestamp: Timestamp): string => {
+    const now = new Date()
+    const date = timestamp.toDate()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return "방금 전"
+    if (diffMins < 60) return `${diffMins}분 전`
+    if (diffHours < 24) return `${diffHours}시간 전`
+    if (diffDays < 7) return `${diffDays}일 전`
+    return date.toLocaleDateString("ko-KR")
+  }
 
   const filteredContent = activeFilter
     ? contents.filter((c) => c.tags.includes(activeFilter)).slice(0, 5)
     : contents.slice(0, 5)
 
-  const filteredPosts = activeFilter
-    ? displayPosts.filter((p) => p.mood_tags.includes(activeFilter)).slice(0, 5)
-    : displayPosts.slice(0, 5)
+  const filteredPosts = displayPosts
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background pb-24">
@@ -175,6 +254,20 @@ function FeedInner() {
           </div>
         )}
       </section>
+
+      {/* Error message */}
+      {authError && (
+        <section className="px-5 pt-4">
+          <div className="rounded-2xl border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm font-medium text-destructive">
+              {authError}
+            </p>
+            <p className="mt-2 text-xs text-destructive/70">
+              네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요. 샘플 데이터를 표시하고 있습니다.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Help notice */}
       <HelpNotice />
