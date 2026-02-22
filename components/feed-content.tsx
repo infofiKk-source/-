@@ -12,7 +12,7 @@ import { EmotionTag } from "@/components/emotion-tag"
 import { HelpNotice } from "@/components/help-notice"
 import { useState, useEffect, Suspense } from "react"
 import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
-import { getPosts, type Post as FirebasePost } from "@/lib/firebase/posts"
+import { getPosts, type Post as FirebasePost, type SortOption } from "@/lib/firebase/posts"
 import { Timestamp } from "firebase/firestore"
 
 function FeedInner() {
@@ -20,6 +20,7 @@ function FeedInner() {
   const moodParam = searchParams.get("mood") as Emotion | null
   const messageParam = searchParams.get("message")
   const [activeFilter, setActiveFilter] = useState<Emotion | null>(moodParam)
+  const [sortBy, setSortBy] = useState<SortOption>("latest")
   const [displayPosts, setDisplayPosts] = useState<Post[]>(samplePosts)
   const [isLoading, setIsLoading] = useState(true)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -53,7 +54,7 @@ function FeedInner() {
         }
 
         // Firebase에서 글 가져오기
-        const firebasePosts = await getPosts(activeFilter || undefined, 5)
+        const firebasePosts = await getPosts(activeFilter || undefined, 5, sortBy)
         
         // Firebase Post를 Post 형식으로 변환
         const convertedPosts: Post[] = firebasePosts.map((p: FirebasePost) => ({
@@ -74,9 +75,17 @@ function FeedInner() {
         const allPosts = [...convertedPosts, ...samplePosts]
         
         // 필터링
-        const filtered = activeFilter
+        let filtered = activeFilter
           ? allPosts.filter((p) => p.mood_tags.includes(activeFilter))
           : allPosts
+
+        // 클라이언트 사이드 정렬 (샘플 데이터 포함)
+        if (sortBy === "popular") {
+          filtered = filtered.sort((a, b) => (b.reactions_count || 0) - (a.reactions_count || 0))
+        } else {
+          // 최신순은 Firebase에서 이미 정렬됨
+          // 샘플 데이터는 created_at이 문자열이므로 그대로 유지
+        }
 
         setDisplayPosts(filtered.slice(0, 5))
         setAuthError(null)
@@ -87,11 +96,26 @@ function FeedInner() {
           message: error?.message,
           fullError: error,
         })
-        setAuthError(`데이터 로드 실패: ${errorMessage}`)
+        
+        // Composite index 오류인 경우 특별 안내
+        if (errorMessage.includes("인덱스") || error?.code === "failed-precondition") {
+          setAuthError(
+            "Firestore 인덱스가 필요합니다. Firebase Console에서 composite index를 생성해주세요."
+          )
+        } else {
+          setAuthError(`데이터 로드 실패: ${errorMessage}`)
+        }
+        
         // 실패 시 샘플 데이터만 사용
-        const filtered = activeFilter
+        let filtered = activeFilter
           ? samplePosts.filter((p) => p.mood_tags.includes(activeFilter))
           : samplePosts
+        
+        // 클라이언트 사이드 정렬
+        if (sortBy === "popular") {
+          filtered = filtered.sort((a, b) => (b.reactions_count || 0) - (a.reactions_count || 0))
+        }
+        
         setDisplayPosts(filtered.slice(0, 5))
       } finally {
         setIsLoading(false)
@@ -99,7 +123,7 @@ function FeedInner() {
     }
 
     loadPosts()
-  }, [activeFilter])
+  }, [activeFilter, sortBy])
 
   // Timestamp를 읽기 쉬운 형식으로 변환
   const formatTimestamp = (timestamp: Timestamp): string => {
@@ -144,8 +168,36 @@ function FeedInner() {
         </div>
       </header>
 
+      {/* Sort options */}
+      <section className="px-5 pt-4 pb-2" aria-label="정렬 옵션">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setSortBy("latest")}
+            className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+              sortBy === "latest"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card text-card-foreground hover:bg-muted"
+            }`}
+          >
+            최신순
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortBy("popular")}
+            className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+              sortBy === "popular"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card text-card-foreground hover:bg-muted"
+            }`}
+          >
+            공감순
+          </button>
+        </div>
+      </section>
+
       {/* Emotion filter */}
-      <section className="px-5 pt-5 pb-2" aria-label="감정 필터">
+      <section className="px-5 pt-4 pb-2" aria-label="감정 필터">
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
           <button
             type="button"
@@ -234,7 +286,15 @@ function FeedInner() {
               {authError}
             </p>
             <p className="mt-2 text-xs text-destructive/70">
-              네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요. 샘플 데이터를 표시하고 있습니다.
+              {authError.includes("인덱스") ? (
+                <>
+                  Firebase Console → Firestore Database → Indexes에서 composite index를 생성해주세요.
+                  <br />
+                  샘플 데이터를 표시하고 있습니다.
+                </>
+              ) : (
+                "네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요. 샘플 데이터를 표시하고 있습니다."
+              )}
             </p>
           </div>
         </section>

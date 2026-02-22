@@ -29,15 +29,54 @@ export async function createPost(post: Omit<Post, "id" | "created_at" | "reactio
   }
 }
 
-// 글 목록 가져오기 (필터링 가능)
-export async function getPosts(mood?: Emotion, limitCount: number = 5) {
+// 정렬 옵션 타입
+export type SortOption = "latest" | "popular"
+
+/**
+ * 글 목록 가져오기 (필터링 및 정렬 가능)
+ * 
+ * ⚠️ Firestore Composite Index 필요:
+ * - mood_tags (array-contains) + created_at (desc): 최신순 필터링
+ * - mood_tags (array-contains) + reactions_count (desc): 공감순 필터링
+ * - created_at (desc): 최신순 전체
+ * - reactions_count (desc): 공감순 전체
+ * 
+ * 인덱스 생성 방법:
+ * 1. Firebase Console > Firestore Database > Indexes
+ * 2. "Create Index" 클릭
+ * 3. Collection ID: posts
+ * 4. Fields 추가:
+ *    - mood_tags: Array
+ *    - created_at: Descending (또는 reactions_count: Descending)
+ * 5. "Create" 클릭
+ */
+export async function getPosts(
+  mood?: Emotion,
+  limitCount: number = 5,
+  sortBy: SortOption = "latest"
+) {
   try {
-    let q = query(collection(db, "posts"), orderBy("created_at", "desc"))
+    let q
+    
+    // 정렬 기준 설정
+    const orderField = sortBy === "popular" ? "reactions_count" : "created_at"
+    const orderDirection: "asc" | "desc" = "desc"
     
     if (mood) {
-      q = query(q, where("mood_tags", "array-contains", mood), limit(limitCount))
+      // 감정 필터 + 정렬
+      q = query(
+        collection(db, "posts"),
+        where("mood_tags", "array-contains", mood),
+        orderBy(orderField, orderDirection),
+        limit(limitCount)
+      )
     } else {
-      q = query(q, limit(limitCount))
+      // 전체 + 정렬
+      q = query(
+        collection(db, "posts"),
+        orderBy(orderField, orderDirection),
+        limit(limitCount)
+      )
     }
     
     const querySnapshot = await getDocs(q)
@@ -51,7 +90,17 @@ export async function getPosts(mood?: Emotion, limitCount: number = 5) {
     })
     
     return posts
-  } catch (error) {
+  } catch (error: any) {
+    // Composite index 오류인 경우 안내
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "Firestore Composite Index가 필요합니다. Firebase Console에서 인덱스를 생성해주세요.",
+        error
+      )
+      throw new Error(
+        "인덱스가 필요합니다. Firebase Console에서 composite index를 생성해주세요."
+      )
+    }
     console.error("글 목록 가져오기 실패:", error)
     throw error
   }
