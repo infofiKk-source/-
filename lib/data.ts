@@ -1,0 +1,534 @@
+export type Emotion =
+  | "외로움"
+  | "불안"
+  | "번아웃"
+  | "무기력"
+  | "이별"
+  | "낮은 자존감"
+  | "슬픔"
+  | "분노"
+
+export const emotions: { label: Emotion; icon: string; color: string }[] = [
+  { label: "외로움", icon: "cloud", color: "bg-blue-100 text-blue-700" },
+  { label: "불안", icon: "wind", color: "bg-amber-100 text-amber-700" },
+  { label: "번아웃", icon: "flame", color: "bg-orange-100 text-orange-700" },
+  { label: "무기력", icon: "battery-low", color: "bg-stone-200 text-stone-600" },
+  { label: "이별", icon: "heart-crack", color: "bg-rose-100 text-rose-600" },
+  { label: "낮은 자존감", icon: "sparkles", color: "bg-emerald-100 text-emerald-700" },
+  { label: "슬픔", icon: "droplets", color: "bg-sky-100 text-sky-700" },
+  { label: "분노", icon: "zap", color: "bg-red-100 text-red-600" },
+]
+
+export interface ContentCard {
+  id: string
+  title: string
+  comfort: string
+  reason: string
+  link: string
+  emotion: Emotion
+}
+
+export interface CommunityPost {
+  id: string
+  mood: Emotion
+  summary: string
+  content: string
+  empathyCount: number
+  commentCount: number
+  author: string
+  createdAt: string
+}
+
+export interface Comment {
+  id: string
+  author: string
+  content: string
+  createdAt: string
+}
+
+export const mockContentCards: ContentCard[] = [
+  {
+    id: "c1",
+    title: "혼자여도 괜찮은 밤을 위한 에세이",
+    comfort: "외로움은 나를 더 깊이 알아가는 시간이에요.",
+    reason: "지금 느끼는 외로움에 따뜻한 위로가 될 거예요",
+    link: "#",
+    emotion: "외로움",
+  },
+  {
+    id: "c2",
+    title: "불안할 때 듣는 10분 명상",
+    comfort: "숨을 깊이 쉬어보세요. 지금 이 순간은 안전합니다.",
+    reason: "마음의 파도를 잠재울 수 있는 가이드예요",
+    link: "#",
+    emotion: "불안",
+  },
+  {
+    id: "c3",
+    title: "번아웃에서 벗어나는 작은 습관들",
+    comfort: "쉬어가도 괜찮아요. 멈추는 것도 용기입니다.",
+    reason: "지친 마음에 실질적인 도움이 되는 글이에요",
+    link: "#",
+    emotion: "번아웃",
+  },
+  {
+    id: "c4",
+    title: "아무것도 하기 싫을 때 읽는 그림책",
+    comfort: "오늘 하루, 숨만 쉬어도 충분해요.",
+    reason: "무기력한 날에 부담 없이 볼 수 있어요",
+    link: "#",
+    emotion: "무기력",
+  },
+  {
+    id: "c5",
+    title: "이별 후 나를 다시 만나는 여행기",
+    comfort: "아픔을 지나면 더 단단한 내가 기다리고 있어요.",
+    reason: "비슷한 경험을 한 분의 진솔한 이야기예요",
+    link: "#",
+    emotion: "이별",
+  },
+  {
+    id: "c6",
+    title: "밤에 혼자 있을 때 듣는 위로의 음악",
+    comfort: "혼자라는 것도 괜찮아요. 당신은 소중한 사람이에요.",
+    reason: "외로움을 달래주는 따뜻한 플레이리스트예요",
+    link: "#",
+    emotion: "외로움",
+  },
+  {
+    id: "c7",
+    title: "불안한 마음을 진정시키는 호흡법",
+    comfort: "천천히 숨을 내쉬어보세요. 모든 것이 괜찮아질 거예요.",
+    reason: "불안할 때 즉시 사용할 수 있는 방법이에요",
+    link: "#",
+    emotion: "불안",
+  },
+  {
+    id: "c8",
+    title: "번아웃 극복을 위한 휴식 가이드",
+    comfort: "쉬는 것도 중요한 일이에요. 당신은 충분히 노력했어요.",
+    reason: "지친 마음에 필요한 휴식 방법을 알려드려요",
+    link: "#",
+    emotion: "번아웃",
+  },
+  {
+    id: "c9",
+    title: "무기력에서 벗어나는 작은 시작",
+    comfort: "작은 것부터 시작해도 괜찮아요. 한 걸음씩 나아가요.",
+    reason: "무기력한 순간에 실용적인 도움이 될 거예요",
+    link: "#",
+    emotion: "무기력",
+  },
+  {
+    id: "c10",
+    title: "이별의 아픔을 함께 나누는 공간",
+    comfort: "아픔은 시간이 지나면 추억이 되어요. 당신은 혼자가 아니에요.",
+    reason: "이별의 감정을 이해하고 공감하는 글이에요",
+    link: "#",
+    emotion: "이별",
+  },
+  {
+    id: "c11",
+    title: "낮은 자존감을 회복하는 일기 쓰기",
+    comfort: "당신은 이미 충분히 좋은 사람이에요. 작은 것부터 인정해주세요.",
+    reason: "자존감 회복을 위한 실천 방법을 알려드려요",
+    link: "#",
+    emotion: "낮은 자존감",
+  },
+  {
+    id: "c12",
+    title: "슬픔을 품고 살아가는 이야기",
+    comfort: "슬픔도 감정의 일부예요. 느끼는 것 자체가 자연스러워요.",
+    reason: "슬픔을 이해하고 함께 나누는 글이에요",
+    link: "#",
+    emotion: "슬픔",
+  },
+  {
+    id: "c13",
+    title: "분노를 건강하게 표현하는 방법",
+    comfort: "분노도 소중한 감정이에요. 건강하게 표현해보세요.",
+    reason: "분노를 다루는 건전한 방법을 알려드려요",
+    link: "#",
+    emotion: "분노",
+  },
+  {
+    id: "c14",
+    title: "혼자 있는 시간을 소중하게 만드는 법",
+    comfort: "혼자만의 시간도 소중한 선물이에요.",
+    reason: "외로움을 위로로 바꾸는 방법이에요",
+    link: "#",
+    emotion: "외로움",
+  },
+  {
+    id: "c15",
+    title: "불안한 밤을 보내는 사람들을 위한 이야기",
+    comfort: "불안해도 괜찮아요. 당신은 안전해요.",
+    reason: "불안한 마음을 달래주는 따뜻한 글이에요",
+    link: "#",
+    emotion: "불안",
+  },
+  {
+    id: "c16",
+    title: "번아웃에서 회복하는 여행기",
+    comfort: "멈춰도 괜찮아요. 다시 시작할 수 있어요.",
+    reason: "번아웃을 경험한 분의 회복 이야기예요",
+    link: "#",
+    emotion: "번아웃",
+  },
+  {
+    id: "c17",
+    title: "무기력한 날을 위한 작은 목표",
+    comfort: "오늘 하루만이라도 괜찮아요. 작은 것부터 시작해요.",
+    reason: "무기력에서 벗어나는 실용적인 조언이에요",
+    link: "#",
+    emotion: "무기력",
+  },
+  {
+    id: "c18",
+    title: "이별 후 나를 찾아가는 여정",
+    comfort: "이별은 끝이 아니라 새로운 시작이에요.",
+    reason: "이별의 아픔을 극복한 분의 이야기예요",
+    link: "#",
+    emotion: "이별",
+  },
+  {
+    id: "c19",
+    title: "자존감을 키우는 작은 실천들",
+    comfort: "당신은 이미 충분히 가치 있는 사람이에요.",
+    reason: "낮은 자존감을 회복하는 실천 방법이에요",
+    link: "#",
+    emotion: "낮은 자존감",
+  },
+  {
+    id: "c20",
+    title: "슬픔과 함께 살아가기",
+    comfort: "슬픔도 당신의 일부예요. 함께 살아가요.",
+    reason: "슬픔을 받아들이고 함께 살아가는 이야기예요",
+    link: "#",
+    emotion: "슬픔",
+  },
+  {
+    id: "c21",
+    title: "분노를 에너지로 바꾸는 방법",
+    comfort: "분노도 변화의 동력이 될 수 있어요.",
+    reason: "분노를 건설적으로 활용하는 방법이에요",
+    link: "#",
+    emotion: "분노",
+  },
+  {
+    id: "c22",
+    title: "혼자서도 행복할 수 있는 순간들",
+    comfort: "혼자여도 충분히 행복할 수 있어요.",
+    reason: "외로움을 행복으로 바꾸는 글이에요",
+    link: "#",
+    emotion: "외로움",
+  },
+  {
+    id: "c23",
+    title: "불안을 다스리는 마음챙김",
+    comfort: "지금 이 순간에 집중해보세요. 불안은 사라질 거예요.",
+    reason: "불안을 관리하는 마음챙김 방법이에요",
+    link: "#",
+    emotion: "불안",
+  },
+  {
+    id: "c24",
+    title: "번아웃 후 다시 일어서기",
+    comfort: "쉬어도 괜찮아요. 다시 시작할 힘이 생길 거예요.",
+    reason: "번아웃에서 회복하는 과정을 담은 글이에요",
+    link: "#",
+    emotion: "번아웃",
+  },
+  {
+    id: "c25",
+    title: "무기력을 이기는 작은 승리들",
+    comfort: "작은 것부터 시작해도 충분해요. 한 걸음씩 나아가요.",
+    reason: "무기력을 극복하는 실천적인 조언이에요",
+    link: "#",
+    emotion: "무기력",
+  },
+  {
+    id: "c26",
+    title: "이별의 아픔을 함께 나누기",
+    comfort: "이별의 아픔은 시간이 지나면 추억이 되어요.",
+    reason: "이별을 경험한 분들과 함께 나누는 공간이에요",
+    link: "#",
+    emotion: "이별",
+  },
+  {
+    id: "c27",
+    title: "낮은 자존감을 회복하는 자기 대화",
+    comfort: "자신에게 친절하게 대하세요. 당신은 소중해요.",
+    reason: "자존감 회복을 위한 자기 대화 방법이에요",
+    link: "#",
+    emotion: "낮은 자존감",
+  },
+  {
+    id: "c28",
+    title: "슬픔을 품고 살아가는 용기",
+    comfort: "슬픔을 느끼는 것도 용기예요. 함께 살아가요.",
+    reason: "슬픔과 함께 살아가는 용기를 담은 글이에요",
+    link: "#",
+    emotion: "슬픔",
+  },
+  {
+    id: "c29",
+    title: "분노를 이해하고 다루기",
+    comfort: "분노도 소중한 감정이에요. 건강하게 표현해요.",
+    reason: "분노를 이해하고 다루는 방법을 알려드려요",
+    link: "#",
+    emotion: "분노",
+  },
+  {
+    id: "c30",
+    title: "혼자서도 충분히 아름다운 하루",
+    comfort: "혼자만의 시간도 소중한 선물이에요.",
+    reason: "외로움을 아름다움으로 바꾸는 글이에요",
+    link: "#",
+    emotion: "외로움",
+  },
+]
+
+export const mockPosts: CommunityPost[] = [
+  {
+    id: "p1",
+    mood: "외로움",
+    summary: "주말인데 연락할 사람이 없다는 게 새삼 느껴져요. 혼자 카페에 앉아있는데 다들 누군가와 함께인 것 같아서...",
+    content:
+      "주말인데 연락할 사람이 없다는 게 새삼 느껴져요. 혼자 카페에 앉아있는데 다들 누군가와 함께인 것 같아서 마음이 더 쓸쓸해지네요. 사실 혼자가 편하다고 생각했는데, 이런 순간에는 누군가 옆에 있었으면 좋겠다는 생각이 들어요. 저만 이런 건 아니겠죠?",
+    empathyCount: 24,
+    commentCount: 8,
+    author: "조용한밤",
+    createdAt: "2시간 전",
+  },
+  {
+    id: "p2",
+    mood: "불안",
+    summary: "내일 면접인데 잠이 안 와요. 또 떨어지면 어쩌지 하는 생각이 머릿속을 떠나질 않아서...",
+    content:
+      "내일 면접인데 잠이 안 와요. 또 떨어지면 어쩌지 하는 생각이 머릿속을 떠나질 않아서 밤새 뒤척이고 있어요. 이번이 다섯 번째 면접이에요. 준비를 많이 했는데도 자신감이 없어요. 저를 응원해주실 분 계신가요?",
+    empathyCount: 42,
+    commentCount: 15,
+    author: "새벽별",
+    createdAt: "3시간 전",
+  },
+  {
+    id: "p3",
+    mood: "번아웃",
+    summary: "매일 야근하고 주말에도 일하는데, 이게 무슨 의미인지 모르겠어요. 그냥 기계처럼 사는 느낌...",
+    content:
+      "매일 야근하고 주말에도 일하는데, 이게 무슨 의미인지 모르겠어요. 그냥 기계처럼 사는 느낌이에요. 좋아하던 취미도 더 이상 즐겁지 않고, 친구들 만날 에너지도 없어요. 이 상태에서 벗어나고 싶은데 방법을 모르겠어요.",
+    empathyCount: 56,
+    commentCount: 12,
+    author: "지친하루",
+    createdAt: "5시간 전",
+  },
+  {
+    id: "p4",
+    mood: "슬픔",
+    summary: "오늘 할머니 기일이에요. 보고 싶은 마음을 어디에 둬야 할지 모르겠어서 여기에 적어봅니다.",
+    content:
+      "오늘 할머니 기일이에요. 벌써 3년이 지났는데 아직도 할머니 생각하면 눈물이 나요. 할머니가 끓여주시던 된장찌개 맛이 그리워요. 보고 싶은 마음을 어디에 둬야 할지 모르겠어서 여기에 적어봅니다.",
+    empathyCount: 38,
+    commentCount: 10,
+    author: "그리운계절",
+    createdAt: "8시간 전",
+  },
+  {
+    id: "p5",
+    mood: "낮은 자존감",
+    summary: "또 비교하게 돼요. SNS를 보면 다들 잘 살고 있는 것 같은데 나만 제자리인 느낌이에요.",
+    content:
+      "또 비교하게 돼요. SNS를 보면 다들 잘 살고 있는 것 같은데 나만 제자리인 느낌이에요. 친구들은 승진하고 결혼하고 집도 사는데, 저는 아직 뭘 하고 싶은지도 모르겠어요. 이런 제가 한심하게 느껴지는 날이에요.",
+    empathyCount: 61,
+    commentCount: 20,
+    author: "작은나",
+    createdAt: "1일 전",
+  },
+  {
+    id: "p6",
+    mood: "외로움",
+    summary: "밤에 혼자 있을 때가 가장 외로워요. 아무도 연락하지 않고, 아무도 나를 찾지 않아요.",
+    content:
+      "밤에 혼자 있을 때가 가장 외로워요. 아무도 연락하지 않고, 아무도 나를 찾지 않아요. 핸드폰을 계속 확인하는데 알림은 없고, 그냥 조용한 밤이 계속되네요. 이런 날이 많아지면서 내가 정말 혼자인 건가 싶어요.",
+    empathyCount: 33,
+    commentCount: 11,
+    author: "밤하늘",
+    createdAt: "4시간 전",
+  },
+  {
+    id: "p7",
+    mood: "불안",
+    summary: "시험 결과가 나오기 전까지 잠을 못 자요. 떨어지면 어쩌지 하는 생각에 가슴이 답답해요.",
+    content:
+      "시험 결과가 나오기 전까지 잠을 못 자요. 떨어지면 어쩌지 하는 생각에 가슴이 답답해요. 주변 사람들의 기대도 부담스럽고, 내가 제대로 했는지도 확신이 없어요. 결과를 기다리는 이 시간이 너무 길고 불안해요.",
+    empathyCount: 28,
+    commentCount: 9,
+    author: "걱정많은하루",
+    createdAt: "6시간 전",
+  },
+  {
+    id: "p8",
+    mood: "번아웃",
+    summary: "일이 너무 많아서 쉴 시간이 없어요. 주말도 일하고, 밤도 일하는데 끝이 없어요.",
+    content:
+      "일이 너무 많아서 쉴 시간이 없어요. 주말도 일하고, 밤도 일하는데 끝이 없어요. 예전에는 일하는 게 즐거웠는데 이제는 그냥 피곤하기만 해요. 휴가를 내고 싶은데 일정이 꽉 차 있어서 불가능해요. 언제쯤 쉴 수 있을까요?",
+    empathyCount: 45,
+    commentCount: 14,
+    author: "피곤한직장인",
+    createdAt: "7시간 전",
+  },
+  {
+    id: "p9",
+    mood: "무기력",
+    summary: "아무것도 하고 싶지 않아요. 침대에서 일어나기도 힘들고, 뭘 해야 할지도 모르겠어요.",
+    content:
+      "아무것도 하고 싶지 않아요. 침대에서 일어나기도 힘들고, 뭘 해야 할지도 모르겠어요. 예전에 좋아하던 것들도 이제는 재미없고, 새로운 것에 도전할 에너지도 없어요. 그냥 하루하루 시간만 보내고 있는 느낌이에요.",
+    empathyCount: 52,
+    commentCount: 18,
+    author: "무기력한날",
+    createdAt: "9시간 전",
+  },
+  {
+    id: "p10",
+    mood: "이별",
+    summary: "헤어진 지 한 달이 지났는데 아직도 적응이 안 돼요. 하루 종일 그 사람 생각만 나요.",
+    content:
+      "헤어진 지 한 달이 지났는데 아직도 적응이 안 돼요. 하루 종일 그 사람 생각만 나요. 함께 있던 장소를 지나가면 가슴이 아프고, 그 사람이 좋아하던 음식을 보면 눈물이 나요. 언제쯤 잊을 수 있을까요?",
+    empathyCount: 67,
+    commentCount: 22,
+    author: "이별후",
+    createdAt: "12시간 전",
+  },
+  {
+    id: "p11",
+    mood: "낮은 자존감",
+    summary: "내가 뭘 잘하는 게 있는지 모르겠어요. 다른 사람들에 비해 부족한 것만 보여요.",
+    content:
+      "내가 뭘 잘하는 게 있는지 모르겠어요. 다른 사람들에 비해 부족한 것만 보여요. 친구들은 다 잘하는데 나만 못하는 것 같고, 내가 가진 것도 별로 대단한 게 없는 것 같아요. 이런 제가 초라하게 느껴져요.",
+    empathyCount: 49,
+    commentCount: 16,
+    author: "자신없는나",
+    createdAt: "1일 전",
+  },
+  {
+    id: "p12",
+    mood: "슬픔",
+    summary: "오늘은 정말 슬픈 하루였어요. 이유도 없이 눈물이 나고, 아무것도 하고 싶지 않아요.",
+    content:
+      "오늘은 정말 슬픈 하루였어요. 이유도 없이 눈물이 나고, 아무것도 하고 싶지 않아요. 주변 사람들은 행복해 보이는데 나만 이렇게 슬픈 기분이 드는 게 이상해요. 그냥 누군가에게 안아달라고 하고 싶어요.",
+    empathyCount: 41,
+    commentCount: 13,
+    author: "슬픈오늘",
+    createdAt: "1일 전",
+  },
+  {
+    id: "p13",
+    mood: "분노",
+    summary: "너무 화가 나요. 불공평한 일이 계속 일어나고, 내가 할 수 있는 게 없어서 답답해요.",
+    content:
+      "너무 화가 나요. 불공평한 일이 계속 일어나고, 내가 할 수 있는 게 없어서 답답해요. 왜 나만 이런 일을 겪어야 하는지 모르겠어요. 화를 낼 곳도 없고, 그냥 속으로만 끓고 있어요. 이 감정을 어떻게 풀어야 할까요?",
+    empathyCount: 35,
+    commentCount: 12,
+    author: "화난하루",
+    createdAt: "2일 전",
+  },
+  {
+    id: "p14",
+    mood: "외로움",
+    summary: "생일인데 축하해주는 사람이 없어요. 가족도 바쁘고, 친구들도 각자 일이 있어서...",
+    content:
+      "생일인데 축하해주는 사람이 없어요. 가족도 바쁘고, 친구들도 각자 일이 있어서 혼자 케이크를 먹고 있어요. 예전에는 생일이 기대됐는데 이제는 그냥 평범한 하루가 되어버렸어요. 누군가가 기억해줬으면 좋겠어요.",
+    empathyCount: 58,
+    commentCount: 19,
+    author: "혼자인생일",
+    createdAt: "2일 전",
+  },
+  {
+    id: "p15",
+    mood: "불안",
+    summary: "새로운 직장에 가게 됐는데 너무 불안해요. 잘할 수 있을까, 사람들과 잘 지낼 수 있을까...",
+    content:
+      "새로운 직장에 가게 됐는데 너무 불안해요. 잘할 수 있을까, 사람들과 잘 지낼 수 있을까 걱정이 많아요. 첫인상이 중요하다고 하는데 내가 실수하면 어쩌지 하는 생각에 밤에 잠도 못 자요. 응원해주실 분 계신가요?",
+    empathyCount: 31,
+    commentCount: 10,
+    author: "새로운시작",
+    createdAt: "2일 전",
+  },
+  {
+    id: "p16",
+    mood: "번아웃",
+    summary: "일이 너무 많아서 취미도 포기했어요. 예전에 좋아하던 것들도 이제는 시간이 없어서 못 해요.",
+    content:
+      "일이 너무 많아서 취미도 포기했어요. 예전에 좋아하던 것들도 이제는 시간이 없어서 못 해요. 하루 종일 일만 하다 보니 내가 뭘 좋아하는지도 모르겠어요. 그냥 기계처럼 살고 있는 느낌이에요. 언제쯤 내 시간을 가질 수 있을까요?",
+    empathyCount: 43,
+    commentCount: 15,
+    author: "일중독",
+    createdAt: "3일 전",
+  },
+  {
+    id: "p17",
+    mood: "무기력",
+    summary: "할 일은 많은데 시작할 의지가 없어요. 계획은 세우는데 실행은 못 해요.",
+    content:
+      "할 일은 많은데 시작할 의지가 없어요. 계획은 세우는데 실행은 못 해요. 내일 하자, 다음 주에 하자 하다가 시간만 흘러가고 있어요. 뭔가 시작하려고 하면 금방 지치고, 그냥 누워있고 싶어요. 어떻게 해야 할까요?",
+    empathyCount: 39,
+    commentCount: 11,
+    author: "의지부족",
+    createdAt: "3일 전",
+  },
+  {
+    id: "p18",
+    mood: "이별",
+    summary: "그 사람이 다른 사람과 함께 있는 걸 봤어요. 아직도 아픈데 더 아파지는 것 같아요.",
+    content:
+      "그 사람이 다른 사람과 함께 있는 걸 봤어요. 아직도 아픈데 더 아파지는 것 같아요. 나는 아직도 그 사람 생각에 힘들어하는데, 그 사람은 이미 새로운 사람과 행복해 보여요. 왜 나만 이렇게 아픈 걸까요?",
+    empathyCount: 54,
+    commentCount: 17,
+    author: "아픈이별",
+    createdAt: "4일 전",
+  },
+  {
+    id: "p19",
+    mood: "낮은 자존감",
+    summary: "회의에서 내 의견이 무시당했어요. 내 말이 중요하지 않다는 느낌이 들어서 힘들어요.",
+    content:
+      "회의에서 내 의견이 무시당했어요. 내 말이 중요하지 않다는 느낌이 들어서 힘들어요. 다른 사람들은 다 좋은 아이디어를 내는데 나만 별로인 것 같아요. 내가 정말 쓸모없는 사람인가 싶어요. 자신감이 바닥까지 떨어졌어요.",
+    empathyCount: 37,
+    commentCount: 14,
+    author: "무시당한나",
+    createdAt: "4일 전",
+  },
+  {
+    id: "p20",
+    mood: "슬픔",
+    summary: "반려동물이 아파요. 수술을 해야 하는데 비용도 부담스럽고, 걱정도 많이 돼요.",
+    content:
+      "반려동물이 아파요. 수술을 해야 하는데 비용도 부담스럽고, 걱정도 많이 돼요. 내가 제대로 돌봐주지 못한 건 아닐까 자책도 되고, 어떻게 해야 할지 모르겠어요. 우리 아이가 빨리 나았으면 좋겠어요.",
+    empathyCount: 62,
+    commentCount: 21,
+    author: "반려인",
+    createdAt: "5일 전",
+  },
+]
+
+export const mockComments: Comment[] = [
+  {
+    id: "cm1",
+    author: "따뜻한손",
+    content: "저도 비슷한 마음이에요. 혼자가 아니라는 걸 기억해주세요.",
+    createdAt: "1시간 전",
+  },
+  {
+    id: "cm2",
+    author: "봄바람",
+    content: "괜찮아요. 이런 감정을 느끼는 것 자체가 자연스러운 거예요. 응원합니다.",
+    createdAt: "2시간 전",
+  },
+  {
+    id: "cm3",
+    author: "달빛산책",
+    content: "글을 읽으며 공감이 많이 됐어요. 우리 함께 힘내봐요.",
+    createdAt: "4시간 전",
+  },
+]
