@@ -10,7 +10,10 @@ import { containsBlockedWords } from "@/lib/utils"
 import { HelpNotice } from "@/components/help-notice"
 import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
 import { createComment, getComments, type Comment as FirebaseComment } from "@/lib/firebase/comments"
-import { addReaction, getReaction } from "@/lib/firebase/reactions"
+import { addReaction, getReaction, subscribeReactionCount } from "@/lib/firebase/reactions"
+import { getContentsByMood, type Content as FirebaseContent } from "@/lib/firebase/contents"
+import { contents as sampleContents } from "@/src/data/sample"
+import { ContentCard } from "@/components/content-card"
 import { Timestamp } from "firebase/firestore"
 
 interface PostDetailProps {
@@ -20,6 +23,7 @@ interface PostDetailProps {
 export function PostDetail({ post }: PostDetailProps) {
   const [empathized, setEmpathized] = useState(false)
   const [empathyCount, setEmpathyCount] = useState(post.reactions_count || 0)
+  const [optimisticCount, setOptimisticCount] = useState<number | null>(null) // Optimistic update용
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [hasBlockedWords, setHasBlockedWords] = useState(false)
@@ -27,6 +31,28 @@ export function PostDetail({ post }: PostDetailProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isCommentLoading, setIsCommentLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
+  const [recommendedContents, setRecommendedContents] = useState<typeof sampleContents>([])
+  const [contentsLoading, setContentsLoading] = useState(true)
+  const [contentsError, setContentsError] = useState<string | null>(null)
+
+  // 실시간 공감 수 구독
+  useEffect(() => {
+    if (!post.id) return
+
+    const unsubscribe = subscribeReactionCount(post.id, (count) => {
+      // Optimistic update가 있으면 서버 값이 optimistic 값과 같거나 더 크면 optimistic 제거
+      if (optimisticCount !== null) {
+        if (count >= optimisticCount) {
+          setOptimisticCount(null)
+          setEmpathyCount(count)
+        }
+      } else {
+        setEmpathyCount(count)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [post.id, optimisticCount])
 
   // 컴포넌트 마운트 시 익명 로그인 및 데이터 로드
   useEffect(() => {
@@ -82,6 +108,73 @@ export function PostDetail({ post }: PostDetailProps) {
     init()
   }, [post.id, authError])
 
+  // 관련 위로 콘텐츠 가져오기
+  useEffect(() => {
+    const loadContents = async () => {
+      if (!post.mood_tags || post.mood_tags.length === 0) {
+        setContentsLoading(false)
+        return
+      }
+
+      setContentsLoading(true)
+      setContentsError(null)
+
+      try {
+        // 첫 번째 mood_tag를 기준으로 콘텐츠 가져오기
+        const mood = post.mood_tags[0]
+        
+        // Firebase에서 먼저 시도
+        try {
+          const firebaseContents = await getContentsByMood(mood, 5)
+          
+          // Firebase Content를 Content 형식으로 변환
+          const convertedContents = firebaseContents.map((c: FirebaseContent) => ({
+            id: c.id || "",
+            type: c.type as typeof sampleContents[0]["type"],
+            title: c.title,
+            link: c.link,
+            tags: c.tags,
+            comfort_line: c.comfort_line,
+            why: c.why,
+          }))
+
+          // 샘플 데이터와 합치기
+          const sampleFiltered = sampleContents.filter((c) => c.tags.includes(mood))
+          const allContents = [...convertedContents, ...sampleFiltered]
+          
+          // 중복 제거 (id 기준)
+          const uniqueContents = allContents.filter(
+            (content, index, self) => index === self.findIndex((c) => c.id === content.id)
+          )
+
+          setRecommendedContents(uniqueContents.slice(0, 5))
+        } catch (error) {
+          // Firebase 실패 시 샘플 데이터만 사용
+          console.error("Firebase 콘텐츠 가져오기 실패, 샘플 데이터 사용:", error)
+          const sampleFiltered = sampleContents.filter((c) => c.tags.includes(mood))
+          setRecommendedContents(sampleFiltered.slice(0, 5))
+        }
+      } catch (error: any) {
+        const errorMessage = error?.message || error?.code || "콘텐츠를 불러오는데 실패했습니다."
+        console.error("콘텐츠 로드 실패:", {
+          code: error?.code,
+          message: error?.message,
+          fullError: error,
+        })
+        setContentsError(`콘텐츠 로드 실패: ${errorMessage}`)
+        
+        // 에러 발생 시 샘플 데이터 사용
+        const mood = post.mood_tags[0]
+        const sampleFiltered = sampleContents.filter((c) => c.tags.includes(mood))
+        setRecommendedContents(sampleFiltered.slice(0, 5))
+      } finally {
+        setContentsLoading(false)
+      }
+    }
+
+    loadContents()
+  }, [post.mood_tags])
+
   // Timestamp를 읽기 쉬운 형식으로 변환
   const formatTimestamp = (timestamp: Timestamp): string => {
     const now = new Date()
@@ -129,11 +222,23 @@ export function PostDetail({ post }: PostDetailProps) {
     }
 
     setIsLoading(true)
+    
+    // Optimistic update: 즉시 UI에 반영
+    const previousCount = empathyCount
+    setOptimisticCount(previousCount + 1)
+    setEmpathyCount(previousCount + 1)
+    setEmpathized(true)
+
     try {
       await addReaction(post.id, user.uid)
-      setEmpathized(true)
-      setEmpathyCount((c) => c + 1)
+      // 성공 시 optimistic 값 제거 (실시간 구독이 최신 값으로 업데이트)
+      setOptimisticCount(null)
     } catch (error: any) {
+      // 실패 시 롤백
+      setEmpathyCount(previousCount)
+      setEmpathized(false)
+      setOptimisticCount(null)
+      
       const errorMessage = error?.message || error?.code || "공감 추가에 실패했습니다."
       console.error("공감 추가 실패:", {
         code: error?.code,
@@ -142,6 +247,7 @@ export function PostDetail({ post }: PostDetailProps) {
       })
       if (error.message === "이미 공감했습니다.") {
         setEmpathized(true)
+        setEmpathyCount(previousCount + 1) // 이미 공감한 경우이므로 +1 유지
       } else {
         setAuthError(`공감 실패: ${errorMessage}`)
       }
@@ -356,7 +462,9 @@ export function PostDetail({ post }: PostDetailProps) {
               }`}
             />
             <span>{empathized ? "공감했어요" : isLoading ? "처리 중..." : "공감하기"}</span>
-            <span className="ml-1 text-xs opacity-70">{empathyCount}</span>
+            <span className="ml-1 text-xs opacity-70">
+              {optimisticCount !== null ? optimisticCount : empathyCount}
+            </span>
           </button>
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MessageCircle className="h-4 w-4" />
@@ -407,6 +515,46 @@ export function PostDetail({ post }: PostDetailProps) {
           </div>
         )}
       </section>
+
+      {/* Recommended contents */}
+      {post.mood_tags && post.mood_tags.length > 0 && (
+        <section className="px-5 pt-6" aria-label="관련 위로 콘텐츠">
+          <h2 className="mb-4 text-sm font-semibold text-foreground">
+            {post.mood_tags[0]}을 위한 위로 콘텐츠
+          </h2>
+          {contentsLoading ? (
+            <div className="flex flex-col items-center gap-3 py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <p className="text-sm text-muted-foreground">콘텐츠를 불러오는 중...</p>
+            </div>
+          ) : contentsError ? (
+            <div className="rounded-2xl border border-destructive/50 bg-destructive/10 p-4">
+              <p className="text-sm font-medium text-destructive">{contentsError}</p>
+              <p className="mt-2 text-xs text-destructive/70">
+                네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.
+              </p>
+            </div>
+          ) : recommendedContents.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {recommendedContents.map((content) => (
+                <ContentCard key={content.id} content={content} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-12">
+              <div className="rounded-full bg-warm-glow/20 p-4">
+                <ArrowLeft className="h-6 w-6 text-primary/60 rotate-180" />
+              </div>
+              <p className="text-sm font-medium text-foreground">
+                이 감정에 맞는 콘텐츠를 준비 중이에요.
+              </p>
+              <p className="text-xs text-muted-foreground text-center max-w-xs">
+                곧 더 많은 콘텐츠를 준비할게요. 조금만 기다려주세요.
+              </p>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Error message */}
       {authError && (

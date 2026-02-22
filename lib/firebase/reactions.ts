@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, Timestamp, increment, updateDoc, doc } from "firebase/firestore"
+import { collection, addDoc, getDocs, query, where, Timestamp, increment, updateDoc, doc, onSnapshot, Unsubscribe } from "firebase/firestore"
 import { db } from "./config"
 
 export interface Reaction {
@@ -73,4 +73,26 @@ export async function getReactionCount(postId: string) {
     console.error("공감 수 가져오기 실패:", error)
     throw error
   }
+}
+
+// 특정 글의 공감 수 실시간 구독
+export function subscribeReactionCount(
+  postId: string,
+  callback: (count: number) => void
+): Unsubscribe {
+  const q = query(
+    collection(db, "reactions"),
+    where("post_id", "==", postId)
+  )
+  
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      callback(snapshot.size)
+    },
+    (error) => {
+      console.error("공감 수 구독 실패:", error)
+      // 에러 발생 시 현재 count를 0으로 설정하지 않고 기존 값 유지
+    }
+  )
 }
