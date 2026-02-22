@@ -15,6 +15,7 @@ export function PostForm() {
   const router = useRouter()
   const [selectedMood, setSelectedMood] = useState<Emotion | null>(null)
   const [content, setContent] = useState("")
+  const [link, setLink] = useState("")
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [submitted, setSubmitted] = useState(false)
   const [hasBlockedWords, setHasBlockedWords] = useState(false)
@@ -86,6 +87,7 @@ export function PostForm() {
       await createPost({
         mood_tags: [selectedMood],
         body: content.trim(),
+        link: link.trim() || undefined, // 링크가 있으면 저장, 없으면 undefined
         user_id: user.uid,
       })
       
@@ -194,6 +196,23 @@ export function PostForm() {
             {hasBlockedWords ? "부적절한 단어가 포함되어 있습니다." : `${content.length}/500`}
           </span>
         </div>
+      </section>
+
+      {/* Link input */}
+      <section className="px-5 pt-4" aria-label="관련 링크">
+        <label className="mb-3 block text-sm font-medium text-foreground">
+          관련 링크 (선택사항)
+        </label>
+        <input
+          type="url"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="https://youtube.com/... 또는 다른 링크"
+          className="w-full rounded-2xl border border-border bg-card p-4 text-sm text-card-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          유튜브, 음악, 영화 등 위로가 되는 링크를 공유해주세요
+        </p>
       </section>
 
       {/* Anonymous toggle */}

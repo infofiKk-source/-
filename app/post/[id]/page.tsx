@@ -21,6 +21,7 @@ export default async function PostPage({
         id: firebasePost.id || "",
         mood_tags: firebasePost.mood_tags,
         body: firebasePost.body,
+        link: firebasePost.link,
         created_at: firebasePost.created_at instanceof Timestamp
           ? firebasePost.created_at.toDate().toLocaleDateString("ko-KR")
           : typeof firebasePost.created_at === "string"
