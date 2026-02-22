@@ -8,6 +8,7 @@ import type { Emotion, CommunityPost } from "@/lib/data"
 import { ContentCard } from "@/components/content-card"
 import { CommunityCard } from "@/components/community-card"
 import { EmotionTag } from "@/components/emotion-tag"
+import { HelpNotice } from "@/components/help-notice"
 import { useState, useEffect, Suspense } from "react"
 
 function FeedInner() {
@@ -131,6 +132,9 @@ function FeedInner() {
           ))}
         </div>
       </section>
+
+      {/* Help notice */}
+      <HelpNotice />
     </div>
   )
 }

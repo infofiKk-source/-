@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Heart, MessageCircle, Send, Share2 } from "lucide-react"
+import { ArrowLeft, Heart, MessageCircle, Send, Share2, Flag } from "lucide-react"
 import { EmotionBadge } from "@/components/emotion-tag"
 import type { CommunityPost, Comment } from "@/lib/data"
 import { mockComments } from "@/lib/data"
+import { containsBlockedWords } from "@/lib/utils"
+import { HelpNotice } from "@/components/help-notice"
 
 interface PostDetailProps {
   post: CommunityPost
@@ -16,6 +18,8 @@ export function PostDetail({ post }: PostDetailProps) {
   const [empathyCount, setEmpathyCount] = useState(post.empathyCount)
   const [comments, setComments] = useState<Comment[]>(mockComments)
   const [newComment, setNewComment] = useState("")
+  const [hasBlockedWords, setHasBlockedWords] = useState(false)
+  const [reported, setReported] = useState(false)
 
   const handleEmpathy = () => {
     if (empathized) {
@@ -26,8 +30,18 @@ export function PostDetail({ post }: PostDetailProps) {
     setEmpathized(!empathized)
   }
 
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newComment = e.target.value
+    setNewComment(newComment)
+    setHasBlockedWords(containsBlockedWords(newComment))
+  }
+
   const handleAddComment = () => {
     if (!newComment.trim()) return
+    if (hasBlockedWords) {
+      alert("부적절한 단어가 포함되어 있습니다. 다시 작성해주세요.")
+      return
+    }
     const comment: Comment = {
       id: `cm-${Date.now()}`,
       author: "나",
@@ -36,6 +50,27 @@ export function PostDetail({ post }: PostDetailProps) {
     }
     setComments([comment, ...comments])
     setNewComment("")
+    setHasBlockedWords(false)
+  }
+
+  const handleReport = () => {
+    if (reported) return
+    
+    const report = {
+      id: `report-${Date.now()}`,
+      postId: post.id,
+      postAuthor: post.author,
+      reason: "부적절한 내용",
+      createdAt: new Date().toISOString(),
+    }
+    
+    // sessionStorage에 신고 저장 (실제로는 DB에 저장)
+    const reports = JSON.parse(sessionStorage.getItem("reports") || "[]")
+    reports.push(report)
+    sessionStorage.setItem("reports", JSON.stringify(reports))
+    
+    setReported(true)
+    alert("신고가 접수되었습니다. 검토 후 조치하겠습니다.")
   }
 
   return (
@@ -53,13 +88,27 @@ export function PostDetail({ post }: PostDetailProps) {
           <h1 className="text-base font-semibold text-foreground">
             이야기
           </h1>
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors"
-            aria-label="공유하기"
-          >
-            <Share2 className="h-4.5 w-4.5 text-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                handleReport()
+              }}
+              disabled={reported}
+              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+              aria-label="신고하기"
+            >
+              <Flag className={`h-4.5 w-4.5 ${reported ? "text-muted-foreground" : "text-foreground"}`} />
+            </button>
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors"
+              aria-label="공유하기"
+            >
+              <Share2 className="h-4.5 w-4.5 text-foreground" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -155,13 +204,18 @@ export function PostDetail({ post }: PostDetailProps) {
         )}
       </section>
 
+      {/* Help notice */}
+      <div className="px-5 pt-6 pb-32">
+        <HelpNotice />
+      </div>
+
       {/* Comment input - fixed bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-lg items-center gap-3 px-5 py-3">
           <input
             type="text"
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={handleCommentChange}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault()
@@ -169,12 +223,16 @@ export function PostDetail({ post }: PostDetailProps) {
               }
             }}
             placeholder="따뜻한 한마디를 남겨주세요..."
-            className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className={`flex-1 rounded-full border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 ${
+              hasBlockedWords
+                ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                : "border-border focus:border-primary/50 focus:ring-primary/20"
+            }`}
           />
           <button
             type="button"
             onClick={handleAddComment}
-            disabled={!newComment.trim()}
+            disabled={!newComment.trim() || hasBlockedWords}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all disabled:opacity-40"
             aria-label="댓글 보내기"
           >

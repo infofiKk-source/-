@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react"
 import { emotions } from "@/lib/data"
 import type { Emotion } from "@/lib/data"
 import { EmotionTag } from "@/components/emotion-tag"
+import { HelpNotice } from "@/components/help-notice"
 
 export function HomeHero() {
   const router = useRouter()
@@ -94,6 +95,11 @@ export function HomeHero() {
           </p>
         </div>
       </section>
+
+      {/* Help notice */}
+      <div className="px-6 pt-6">
+        <HelpNotice />
+      </div>
     </div>
   )
 }

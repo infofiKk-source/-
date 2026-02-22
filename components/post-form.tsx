@@ -7,6 +7,7 @@ import Link from "next/link"
 import { emotions } from "@/lib/data"
 import type { Emotion } from "@/lib/data"
 import { EmotionTag } from "@/components/emotion-tag"
+import { containsBlockedWords } from "@/lib/utils"
 
 export function PostForm() {
   const router = useRouter()
@@ -14,9 +15,20 @@ export function PostForm() {
   const [content, setContent] = useState("")
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [submitted, setSubmitted] = useState(false)
+  const [hasBlockedWords, setHasBlockedWords] = useState(false)
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value
+    setContent(newContent)
+    setHasBlockedWords(containsBlockedWords(newContent))
+  }
 
   const handleSubmit = () => {
     if (!selectedMood || !content.trim()) return
+    if (hasBlockedWords) {
+      alert("부적절한 단어가 포함되어 있습니다. 다시 작성해주세요.")
+      return
+    }
     
     // 새 글을 sessionStorage에 저장
     const newPost = {
@@ -73,7 +85,7 @@ export function PostForm() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!selectedMood || !content.trim()}
+            disabled={!selectedMood || !content.trim() || hasBlockedWords}
             className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-all disabled:opacity-40"
           >
             올리기
@@ -111,15 +123,19 @@ export function PostForm() {
         </label>
         <textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           placeholder="여기는 안전한 공간이에요. 마음 편히 적어보세요..."
           maxLength={500}
           rows={8}
-          className="w-full resize-none rounded-2xl border border-border bg-card p-4 text-sm leading-relaxed text-card-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className={`w-full resize-none rounded-2xl border bg-card p-4 text-sm leading-relaxed text-card-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 ${
+            hasBlockedWords
+              ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+              : "border-border focus:border-primary/50 focus:ring-primary/20"
+          }`}
         />
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            {content.length}/500
+          <span className={`text-xs ${hasBlockedWords ? "text-destructive" : "text-muted-foreground"}`}>
+            {hasBlockedWords ? "부적절한 단어가 포함되어 있습니다." : `${content.length}/500`}
           </span>
         </div>
       </section>
