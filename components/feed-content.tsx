@@ -71,7 +71,7 @@ function FeedInner() {
 
       {/* Emotion filter */}
       <section className="px-5 pt-5 pb-2" aria-label="감정 필터">
-        <div className="no-scrollbar flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
           <button
             type="button"
             onClick={() => setActiveFilter(null)}
