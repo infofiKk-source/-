@@ -6,9 +6,14 @@ export function ContentCard({ card }: { card: ContentCardType }) {
   return (
     <article className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-base font-semibold leading-relaxed text-card-foreground">
-          {card.title}
-        </h3>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium text-primary/70">{card.type}</span>
+          </div>
+          <h3 className="text-base font-semibold leading-relaxed text-card-foreground">
+            {card.title}
+          </h3>
+        </div>
         <EmotionBadge mood={card.emotion} />
       </div>
 

@@ -1,9 +1,10 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
-import { mockContentCards, mockPosts, emotions } from "@/lib/data"
+import { emotions } from "@/lib/data"
+import { sampleContentCards, samplePosts } from "@/src/data/sample"
 import type { Emotion, CommunityPost } from "@/lib/data"
 import { ContentCard } from "@/components/content-card"
 import { CommunityCard } from "@/components/community-card"
@@ -16,7 +17,7 @@ function FeedInner() {
   const moodParam = searchParams.get("mood") as Emotion | null
   const messageParam = searchParams.get("message")
   const [activeFilter, setActiveFilter] = useState<Emotion | null>(moodParam)
-  const [posts, setPosts] = useState<CommunityPost[]>(mockPosts)
+  const [posts, setPosts] = useState<CommunityPost[]>(samplePosts)
 
   // sessionStorage에서 새로 작성한 글 확인
   useEffect(() => {
@@ -33,17 +34,12 @@ function FeedInner() {
   }, [])
 
   const filteredContent = activeFilter
-    ? mockContentCards.filter((c) => c.emotion === activeFilter)
-    : mockContentCards
+    ? sampleContentCards.filter((c) => c.emotion === activeFilter)
+    : sampleContentCards
 
   const filteredPosts = activeFilter
     ? posts.filter((p) => p.mood === activeFilter)
     : posts
-
-  const displayContent =
-    filteredContent.length > 0 ? filteredContent : mockContentCards
-  const displayPosts =
-    filteredPosts.length > 0 ? filteredPosts : posts
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background pb-24">
@@ -106,11 +102,25 @@ function FeedInner() {
             ? `${activeFilter}을 위한 추천 콘텐츠`
             : "당신을 위한 추천 콘텐츠"}
         </h2>
-        <div className="flex flex-col gap-4">
-          {displayContent.map((card) => (
-            <ContentCard key={card.id} card={card} />
-          ))}
-        </div>
+        {filteredContent.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {filteredContent.map((card) => (
+              <ContentCard key={card.id} card={card} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 py-12">
+            <div className="rounded-full bg-muted p-4">
+              <ArrowLeft className="h-6 w-6 text-muted-foreground rotate-180" />
+            </div>
+            <p className="text-sm font-medium text-foreground">
+              {activeFilter ? `${activeFilter}을 위한 콘텐츠가 아직 없어요` : "추천 콘텐츠가 없어요"}
+            </p>
+            <p className="text-xs text-muted-foreground text-center">
+              곧 더 많은 콘텐츠를 준비할게요
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Community posts */}
@@ -126,11 +136,31 @@ function FeedInner() {
             나도 적어보기
           </Link>
         </div>
-        <div className="flex flex-col gap-4">
-          {displayPosts.map((post) => (
-            <CommunityCard key={post.id} post={post} />
-          ))}
-        </div>
+        {filteredPosts.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {filteredPosts.map((post) => (
+              <CommunityCard key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 py-12">
+            <div className="rounded-full bg-muted p-4">
+              <MessageCircle className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground">
+              {activeFilter ? `${activeFilter}에 대한 이야기가 아직 없어요` : "아직 이야기가 없어요"}
+            </p>
+            <p className="text-xs text-muted-foreground text-center mb-4">
+              첫 번째 이야기를 남겨보세요
+            </p>
+            <Link
+              href="/post/new"
+              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90"
+            >
+              이야기 작성하기
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Help notice */}

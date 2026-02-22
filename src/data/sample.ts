@@ -1,56 +1,6 @@
-export type Emotion =
-  | "외로움"
-  | "불안"
-  | "번아웃"
-  | "무기력"
-  | "이별"
-  | "낮은 자존감"
-  | "슬픔"
-  | "분노"
+import type { ContentCard, CommunityPost, Emotion } from "@/lib/data"
 
-export const emotions: { label: Emotion; icon: string; color: string }[] = [
-  { label: "외로움", icon: "cloud", color: "bg-blue-100 text-blue-700" },
-  { label: "불안", icon: "wind", color: "bg-amber-100 text-amber-700" },
-  { label: "번아웃", icon: "flame", color: "bg-orange-100 text-orange-700" },
-  { label: "무기력", icon: "battery-low", color: "bg-stone-200 text-stone-600" },
-  { label: "이별", icon: "heart-crack", color: "bg-rose-100 text-rose-600" },
-  { label: "낮은 자존감", icon: "sparkles", color: "bg-emerald-100 text-emerald-700" },
-  { label: "슬픔", icon: "droplets", color: "bg-sky-100 text-sky-700" },
-  { label: "분노", icon: "zap", color: "bg-red-100 text-red-600" },
-]
-
-export type ContentType = "음악" | "영화" | "유튜브" | "책" | "에세이" | "명상" | "팟캐스트"
-
-export interface ContentCard {
-  id: string
-  title: string
-  comfort: string
-  reason: string
-  link: string
-  emotion: Emotion
-  type: ContentType
-}
-
-export interface CommunityPost {
-  id: string
-  mood: Emotion
-  summary: string
-  content: string
-  empathyCount: number
-  commentCount: number
-  author: string
-  createdAt: string
-}
-
-export interface Comment {
-  id: string
-  author: string
-  content: string
-  createdAt: string
-}
-
-// 샘플 데이터는 src/data/sample.ts에서 import하세요
-export const mockContentCards: ContentCard[] = []
+export const sampleContentCards: ContentCard[] = [
   {
     id: "c1",
     title: "혼자여도 괜찮은 밤을 위한 에세이",
@@ -58,6 +8,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "지금 느끼는 외로움에 따뜻한 위로가 될 거예요",
     link: "#",
     emotion: "외로움",
+    type: "에세이",
   },
   {
     id: "c2",
@@ -66,6 +17,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "마음의 파도를 잠재울 수 있는 가이드예요",
     link: "#",
     emotion: "불안",
+    type: "명상",
   },
   {
     id: "c3",
@@ -74,6 +26,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "지친 마음에 실질적인 도움이 되는 글이에요",
     link: "#",
     emotion: "번아웃",
+    type: "책",
   },
   {
     id: "c4",
@@ -82,6 +35,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "무기력한 날에 부담 없이 볼 수 있어요",
     link: "#",
     emotion: "무기력",
+    type: "책",
   },
   {
     id: "c5",
@@ -90,6 +44,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "비슷한 경험을 한 분의 진솔한 이야기예요",
     link: "#",
     emotion: "이별",
+    type: "에세이",
   },
   {
     id: "c6",
@@ -98,6 +53,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "외로움을 달래주는 따뜻한 플레이리스트예요",
     link: "#",
     emotion: "외로움",
+    type: "음악",
   },
   {
     id: "c7",
@@ -106,6 +62,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "불안할 때 즉시 사용할 수 있는 방법이에요",
     link: "#",
     emotion: "불안",
+    type: "유튜브",
   },
   {
     id: "c8",
@@ -114,6 +71,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "지친 마음에 필요한 휴식 방법을 알려드려요",
     link: "#",
     emotion: "번아웃",
+    type: "팟캐스트",
   },
   {
     id: "c9",
@@ -122,6 +80,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "무기력한 순간에 실용적인 도움이 될 거예요",
     link: "#",
     emotion: "무기력",
+    type: "유튜브",
   },
   {
     id: "c10",
@@ -130,6 +89,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "이별의 감정을 이해하고 공감하는 글이에요",
     link: "#",
     emotion: "이별",
+    type: "에세이",
   },
   {
     id: "c11",
@@ -138,6 +98,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "자존감 회복을 위한 실천 방법을 알려드려요",
     link: "#",
     emotion: "낮은 자존감",
+    type: "책",
   },
   {
     id: "c12",
@@ -146,6 +107,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "슬픔을 이해하고 함께 나누는 글이에요",
     link: "#",
     emotion: "슬픔",
+    type: "에세이",
   },
   {
     id: "c13",
@@ -154,6 +116,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "분노를 다루는 건전한 방법을 알려드려요",
     link: "#",
     emotion: "분노",
+    type: "유튜브",
   },
   {
     id: "c14",
@@ -162,6 +125,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "외로움을 위로로 바꾸는 방법이에요",
     link: "#",
     emotion: "외로움",
+    type: "팟캐스트",
   },
   {
     id: "c15",
@@ -170,6 +134,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "불안한 마음을 달래주는 따뜻한 글이에요",
     link: "#",
     emotion: "불안",
+    type: "에세이",
   },
   {
     id: "c16",
@@ -178,6 +143,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "번아웃을 경험한 분의 회복 이야기예요",
     link: "#",
     emotion: "번아웃",
+    type: "에세이",
   },
   {
     id: "c17",
@@ -186,6 +152,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "무기력에서 벗어나는 실용적인 조언이에요",
     link: "#",
     emotion: "무기력",
+    type: "유튜브",
   },
   {
     id: "c18",
@@ -194,6 +161,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "이별의 아픔을 극복한 분의 이야기예요",
     link: "#",
     emotion: "이별",
+    type: "책",
   },
   {
     id: "c19",
@@ -202,6 +170,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "낮은 자존감을 회복하는 실천 방법이에요",
     link: "#",
     emotion: "낮은 자존감",
+    type: "팟캐스트",
   },
   {
     id: "c20",
@@ -210,6 +179,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "슬픔을 받아들이고 함께 살아가는 이야기예요",
     link: "#",
     emotion: "슬픔",
+    type: "에세이",
   },
   {
     id: "c21",
@@ -218,6 +188,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "분노를 건설적으로 활용하는 방법이에요",
     link: "#",
     emotion: "분노",
+    type: "유튜브",
   },
   {
     id: "c22",
@@ -226,6 +197,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "외로움을 행복으로 바꾸는 글이에요",
     link: "#",
     emotion: "외로움",
+    type: "음악",
   },
   {
     id: "c23",
@@ -234,6 +206,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "불안을 관리하는 마음챙김 방법이에요",
     link: "#",
     emotion: "불안",
+    type: "명상",
   },
   {
     id: "c24",
@@ -242,6 +215,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "번아웃에서 회복하는 과정을 담은 글이에요",
     link: "#",
     emotion: "번아웃",
+    type: "팟캐스트",
   },
   {
     id: "c25",
@@ -250,6 +224,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "무기력을 극복하는 실천적인 조언이에요",
     link: "#",
     emotion: "무기력",
+    type: "유튜브",
   },
   {
     id: "c26",
@@ -258,6 +233,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "이별을 경험한 분들과 함께 나누는 공간이에요",
     link: "#",
     emotion: "이별",
+    type: "영화",
   },
   {
     id: "c27",
@@ -266,6 +242,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "자존감 회복을 위한 자기 대화 방법이에요",
     link: "#",
     emotion: "낮은 자존감",
+    type: "책",
   },
   {
     id: "c28",
@@ -274,6 +251,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "슬픔과 함께 살아가는 용기를 담은 글이에요",
     link: "#",
     emotion: "슬픔",
+    type: "영화",
   },
   {
     id: "c29",
@@ -282,6 +260,7 @@ export const mockContentCards: ContentCard[] = []
     reason: "분노를 이해하고 다루는 방법을 알려드려요",
     link: "#",
     emotion: "분노",
+    type: "음악",
   },
   {
     id: "c30",
@@ -290,11 +269,11 @@ export const mockContentCards: ContentCard[] = []
     reason: "외로움을 아름다움으로 바꾸는 글이에요",
     link: "#",
     emotion: "외로움",
+    type: "영화",
   },
 ]
 
-// 샘플 데이터는 src/data/sample.ts에서 import하세요
-export const mockPosts: CommunityPost[] = []
+export const samplePosts: CommunityPost[] = [
   {
     id: "p1",
     mood: "외로움",
@@ -514,26 +493,5 @@ export const mockPosts: CommunityPost[] = []
     commentCount: 21,
     author: "반려인",
     createdAt: "5일 전",
-  },
-]
-
-export const mockComments: Comment[] = [
-  {
-    id: "cm1",
-    author: "따뜻한손",
-    content: "저도 비슷한 마음이에요. 혼자가 아니라는 걸 기억해주세요.",
-    createdAt: "1시간 전",
-  },
-  {
-    id: "cm2",
-    author: "봄바람",
-    content: "괜찮아요. 이런 감정을 느끼는 것 자체가 자연스러운 거예요. 응원합니다.",
-    createdAt: "2시간 전",
-  },
-  {
-    id: "cm3",
-    author: "달빛산책",
-    content: "글을 읽으며 공감이 많이 됐어요. 우리 함께 힘내봐요.",
-    createdAt: "4시간 전",
   },
 ]
