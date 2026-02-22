@@ -45,11 +45,13 @@ export function HomeHero() {
               label={emotion.label}
               icon={emotion.icon}
               isSelected={selectedEmotion === emotion.label}
-              onClick={() =>
-                setSelectedEmotion(
-                  selectedEmotion === emotion.label ? null : emotion.label
-                )
-              }
+              onClick={() => {
+                const newSelected = selectedEmotion === emotion.label ? null : emotion.label
+                setSelectedEmotion(newSelected)
+                if (newSelected) {
+                  router.push(`/feed?mood=${newSelected}`)
+                }
+              }}
             />
           ))}
         </div>

@@ -30,16 +30,14 @@ export function PostForm() {
       return
     }
     
-    // 새 글을 sessionStorage에 저장
+    // 새 글을 sessionStorage에 저장 (새 구조)
     const newPost = {
       id: `p-${Date.now()}`,
-      mood: selectedMood,
-      summary: content.length > 100 ? content.substring(0, 100) + "..." : content,
-      content: content.trim(),
-      empathyCount: 0,
-      commentCount: 0,
-      author: isAnonymous ? "익명" : "나",
-      createdAt: "방금 전",
+      mood_tags: [selectedMood],
+      body: content.trim(),
+      created_at: "방금 전",
+      reactions_count: 0,
+      comments_count: 0,
     }
     
     sessionStorage.setItem("newPost", JSON.stringify(newPost))

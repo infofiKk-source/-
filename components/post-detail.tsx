@@ -4,18 +4,19 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, Heart, MessageCircle, Send, Share2, Flag } from "lucide-react"
 import { EmotionBadge } from "@/components/emotion-tag"
-import type { CommunityPost, Comment } from "@/lib/data"
+import type { Comment } from "@/lib/data"
 import { mockComments } from "@/lib/data"
+import type { Post } from "@/src/data/sample"
 import { containsBlockedWords } from "@/lib/utils"
 import { HelpNotice } from "@/components/help-notice"
 
 interface PostDetailProps {
-  post: CommunityPost
+  post: Post
 }
 
 export function PostDetail({ post }: PostDetailProps) {
   const [empathized, setEmpathized] = useState(false)
-  const [empathyCount, setEmpathyCount] = useState(post.empathyCount)
+  const [empathyCount, setEmpathyCount] = useState(post.reactions_count)
   const [comments, setComments] = useState<Comment[]>(mockComments)
   const [newComment, setNewComment] = useState("")
   const [hasBlockedWords, setHasBlockedWords] = useState(false)
@@ -117,21 +118,23 @@ export function PostDetail({ post }: PostDetailProps) {
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
             <span className="text-sm font-semibold text-primary">
-              {post.author[0]}
+              익
             </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">{post.author}</p>
-            <p className="text-xs text-muted-foreground">{post.createdAt}</p>
+            <p className="text-sm font-medium text-foreground">익명</p>
+            <p className="text-xs text-muted-foreground">{post.created_at}</p>
           </div>
         </div>
 
-        <div className="mt-4">
-          <EmotionBadge mood={post.mood} />
+        <div className="mt-4 flex gap-2">
+          {post.mood_tags.map((mood) => (
+            <EmotionBadge key={mood} mood={mood} />
+          ))}
         </div>
 
         <p className="mt-4 text-sm leading-7 text-foreground">
-          {post.content}
+          {post.body}
         </p>
 
         {/* Empathy bar */}
@@ -156,7 +159,7 @@ export function PostDetail({ post }: PostDetailProps) {
           </button>
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MessageCircle className="h-4 w-4" />
-            <span>{comments.length}</span>
+            <span>{post.comments_count + comments.length}</span>
           </span>
         </div>
       </article>

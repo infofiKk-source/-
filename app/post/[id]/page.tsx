@@ -1,4 +1,4 @@
-import { mockPosts } from "@/lib/data"
+import { posts } from "@/src/data/sample"
 import { PostDetail } from "@/components/post-detail"
 import { notFound } from "next/navigation"
 
@@ -8,7 +8,7 @@ export default async function PostPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const post = mockPosts.find((p) => p.id === id)
+  const post = posts.find((p) => p.id === id)
 
   if (!post) {
     notFound()
