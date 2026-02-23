@@ -8,6 +8,7 @@ import type { Emotion } from "@/lib/data"
 import { EmotionTag } from "@/components/emotion-tag"
 import { HelpNotice } from "@/components/help-notice"
 import { DailyComfortCard } from "@/components/daily-comfort-card"
+import { PopularContentsSection } from "@/components/popular-contents-section"
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/firebase/auth"
 
@@ -123,6 +124,9 @@ export function HomeHero() {
           </p>
         </div>
       </section>
+
+      {/* Popular Contents Section */}
+      <PopularContentsSection selectedEmotion={selectedEmotion} />
 
       {/* Help notice */}
       <div className="px-6 pt-6">
