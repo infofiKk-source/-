@@ -9,6 +9,7 @@ import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
 import { addReaction, getReaction } from "@/lib/firebase/reactions"
 import { savePost, unsavePost, getSavedPost } from "@/lib/firebase/saved"
 import { Bookmark } from "lucide-react"
+import { LinkPreviewCard } from "@/components/link-preview-card"
 
 export function CommunityCard({ post }: { post: Post }) {
   const [reported, setReported] = useState(false)
@@ -170,23 +171,10 @@ export function CommunityCard({ post }: { post: Post }) {
           {summary}
         </p>
 
-        {/* Link indicator */}
+        {/* Link Preview Card */}
         {post.link && (
-          <div className="flex items-center gap-1.5 text-xs text-primary/70">
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-              />
-            </svg>
-            <span>링크 있음</span>
+          <div onClick={(e) => e.stopPropagation()}>
+            <LinkPreviewCard url={post.link} />
           </div>
         )}
 
