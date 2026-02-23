@@ -233,6 +233,12 @@ function FeedInner() {
           </h2>
           <div className="flex items-center gap-3">
             <Link
+              href="/stats"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              통계
+            </Link>
+            <Link
               href="/contents"
               className="text-xs font-medium text-primary hover:underline"
             >
