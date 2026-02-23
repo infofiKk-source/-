@@ -29,14 +29,26 @@ export function HomeHero() {
     <div className="flex min-h-[100dvh] flex-col bg-background pb-24">
       {/* Header area */}
       <header className="px-6 pt-14 pb-8">
-        <p className="mb-2 text-sm font-medium text-muted-foreground">
-          오늘의 마음
-        </p>
-        <h1 className="font-serif text-2xl font-semibold leading-snug text-foreground">
-          지금, 어떤 감정이
-          <br />
-          <span className="text-primary">마음을 채우고 있나요?</span>
-        </h1>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <p className="mb-2 text-sm font-medium text-muted-foreground">
+              오늘의 마음
+            </p>
+            <h1 className="font-serif text-2xl font-semibold leading-snug text-foreground">
+              지금, 어떤 감정이
+              <br />
+              <span className="text-primary">마음을 채우고 있나요?</span>
+            </h1>
+          </div>
+          {!getCurrentUser() && (
+            <Link
+              href="/auth"
+              className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-card-foreground transition-colors hover:bg-muted"
+            >
+              로그인
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Daily Comfort Card */}
@@ -65,9 +77,6 @@ export function HomeHero() {
               onClick={() => {
                 const newSelected = selectedEmotion === emotion.label ? null : emotion.label
                 setSelectedEmotion(newSelected)
-                if (newSelected) {
-                  router.push(`/feed?mood=${newSelected}`)
-                }
               }}
             />
           ))}
@@ -102,14 +111,6 @@ export function HomeHero() {
           <span>위로 받으러 가기</span>
           <ArrowRight className="h-4 w-4" />
         </button>
-        {!getCurrentUser() && (
-          <Link
-            href="/auth"
-            className="mt-3 flex w-full items-center justify-center rounded-2xl border border-border bg-card px-6 py-4 text-sm font-medium text-card-foreground transition-colors hover:bg-muted"
-          >
-            로그인 / 회원가입
-          </Link>
-        )}
       </section>
 
       {/* Gentle encouragement */}
