@@ -95,6 +95,9 @@ export async function getPosts(
     let q
     
     // 정렬 기준 설정
+    // 새 스키마(createdAt, empathyCount)와 기존 스키마(created_at, reactions_count) 모두 지원
+    // Firestore는 하나의 쿼리에서 하나의 필드만 정렬할 수 있으므로
+    // 기존 스키마 필드로 정렬 시도, 없으면 클라이언트에서 정렬
     const orderField = sortBy === "popular" ? "reactions_count" : "created_at"
     const orderDirection: "asc" | "desc" = "desc"
     
@@ -103,18 +106,26 @@ export async function getPosts(
     // 더 많이 가져온 후 클라이언트에서 필터링
     if (mood) {
       // 필터링을 위해 더 많이 가져오기 (클라이언트에서 필터링)
+      // 정렬 필드가 없을 수 있으므로 limit만 사용
       q = query(
         collection(db, "posts"),
-        orderBy(orderField, orderDirection),
-        limit(limitCount * 3) // 필터링을 위해 더 많이 가져오기
+        limit(limitCount * 5) // 필터링을 위해 더 많이 가져오기
       )
     } else {
-      // 전체 + 정렬
-      q = query(
-        collection(db, "posts"),
-        orderBy(orderField, orderDirection),
-        limit(limitCount)
-      )
+      // 전체 + 정렬 (필드가 없을 수 있으므로 try-catch로 처리)
+      try {
+        q = query(
+          collection(db, "posts"),
+          orderBy(orderField, orderDirection),
+          limit(limitCount * 2) // 새 스키마 데이터도 포함하기 위해 더 많이 가져오기
+        )
+      } catch (error) {
+        // 정렬 필드가 없으면 limit만 사용 (클라이언트에서 정렬)
+        q = query(
+          collection(db, "posts"),
+          limit(limitCount * 2)
+        )
+      }
     }
     
     const querySnapshot = await getDocs(q)
@@ -130,7 +141,7 @@ export async function getPosts(
       }
       
       // 새로운 스키마(emotionTags, reason, empathyCount 등)를 기존 스키마로 변환
-      const convertedData: Post = {
+      const convertedData: Post & { createdAt?: any } = {
         id: doc.id,
         mood_tags: emotionTags,
         body: data.reason || data.body || "", // 새로운 스키마의 reason을 body로 매핑
@@ -139,6 +150,7 @@ export async function getPosts(
         reactions_count: data.empathyCount !== undefined ? data.empathyCount : (data.reactions_count || 0), // 새로운 스키마의 empathyCount를 reactions_count로 매핑
         comments_count: data.comments_count || 0,
         user_id: data.user_id || data.authorName || "익명", // 새로운 스키마의 authorName을 user_id로 매핑 (임시)
+        createdAt: data.createdAt, // 원본 createdAt 필드도 보관 (정렬용)
       }
       
       // whyItComforted 필드가 있으면 추가
@@ -159,17 +171,28 @@ export async function getPosts(
       if (sortBy === "popular") {
         return b.reactions_count - a.reactions_count
       } else {
-        const aTime = a.created_at instanceof Timestamp 
-          ? a.created_at.toMillis() 
-          : a.created_at instanceof Date 
-          ? a.created_at.getTime() 
-          : 0
-        const bTime = b.created_at instanceof Timestamp 
-          ? b.created_at.toMillis() 
-          : b.created_at instanceof Date 
-          ? b.created_at.getTime() 
-          : 0
-        return bTime - aTime
+        // created_at 또는 createdAt 필드 처리
+        const getTime = (post: Post): number => {
+          if (post.created_at instanceof Timestamp) {
+            return post.created_at.toMillis()
+          }
+          if (post.created_at instanceof Date) {
+            return post.created_at.getTime()
+          }
+          // 새 스키마의 createdAt 필드 확인 (원본 데이터에서)
+          const originalData = (post as any).createdAt
+          if (originalData instanceof Timestamp) {
+            return originalData.toMillis()
+          }
+          if (originalData instanceof Date) {
+            return originalData.getTime()
+          }
+          return 0
+        }
+        
+        const aTime = getTime(a)
+        const bTime = getTime(b)
+        return bTime - aTime // 최신순 (내림차순)
       }
     })
     
