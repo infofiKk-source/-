@@ -17,12 +17,10 @@ export function PostForm() {
   const router = useRouter()
   const [selectedMoods, setSelectedMoods] = useState<Emotion[]>([]) // 복수 선택
   const [content, setContent] = useState("")
-  const [whyItComforted, setWhyItComforted] = useState("")
   const [link, setLink] = useState("")
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [submitted, setSubmitted] = useState(false)
   const [hasBlockedWords, setHasBlockedWords] = useState(false)
-  const [hasBlockedWordsInWhy, setHasBlockedWordsInWhy] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
 
@@ -54,12 +52,6 @@ export function PostForm() {
     setHasBlockedWords(containsBlockedWords(newContent))
   }
 
-  const handleWhyItComfortedChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newWhy = e.target.value
-    setWhyItComforted(newWhy)
-    setHasBlockedWordsInWhy(containsBlockedWords(newWhy))
-  }
-
   const handleMoodToggle = (emotion: Emotion) => {
     setSelectedMoods((prev) => {
       if (prev.includes(emotion)) {
@@ -78,19 +70,11 @@ export function PostForm() {
       alert("감정 태그를 최소 1개 이상 선택해주세요.")
       return
     }
-    if (!content.trim()) {
-      alert("마음속 이야기를 작성해주세요.")
+    if (!content.trim() && !link.trim()) {
+      alert("마음속 이야기 또는 링크를 작성해주세요.")
       return
     }
-    if (!whyItComforted.trim()) {
-      alert("왜 위로가 되었는지 작성해주세요.")
-      return
-    }
-    if (whyItComforted.trim().length < 10) {
-      alert("왜 위로가 되었는지 최소 10자 이상 작성해주세요.")
-      return
-    }
-    if (hasBlockedWords || hasBlockedWordsInWhy) {
+    if (hasBlockedWords) {
       alert("부적절한 단어가 포함되어 있습니다. 다시 작성해주세요.")
       return
     }
@@ -124,8 +108,7 @@ export function PostForm() {
       // Firebase에 글 저장
       await createPost({
         mood_tags: selectedMoods,
-        body: content.trim(),
-        whyItComforted: whyItComforted.trim(),
+        body: content.trim() || "", // 마음속 이야기 (없으면 빈 문자열)
         link: link.trim() || undefined, // 링크가 있으면 저장, 없으면 undefined
         user_id: user.uid,
       })
@@ -184,11 +167,8 @@ export function PostForm() {
             onClick={handleSubmit}
             disabled={
               selectedMoods.length === 0 ||
-              !content.trim() ||
-              !whyItComforted.trim() ||
-              whyItComforted.trim().length < 10 ||
+              (!content.trim() && !link.trim()) ||
               hasBlockedWords ||
-              hasBlockedWordsInWhy ||
               isLoading
             }
             className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-all disabled:opacity-40"
@@ -225,12 +205,12 @@ export function PostForm() {
       {/* Content textarea */}
       <section className="px-5 pt-6" aria-label="글 내용">
         <label className="mb-3 block text-sm font-medium text-foreground">
-          마음속 이야기
+          마음속 이야기 <span className="text-muted-foreground">(또는 링크만 공유해도 됩니다)</span>
         </label>
         <textarea
           value={content}
           onChange={handleContentChange}
-          placeholder="여기는 안전한 공간이에요. 마음 편히 적어보세요..."
+          placeholder="여기는 안전한 공간이에요. 마음 편히 적어보세요. 링크를 공유할 때는 왜 위로가 되었는지 함께 적어주시면 더 좋아요."
           maxLength={500}
           rows={8}
           className={`w-full resize-none rounded-2xl border bg-card p-4 text-sm leading-relaxed text-card-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 ${
@@ -242,42 +222,6 @@ export function PostForm() {
         <div className="mt-2 flex items-center justify-between">
           <span className={`text-xs ${hasBlockedWords ? "text-destructive" : "text-muted-foreground"}`}>
             {hasBlockedWords ? "부적절한 단어가 포함되어 있습니다." : `${content.length}/500`}
-          </span>
-        </div>
-      </section>
-
-      {/* Why it comforted */}
-      <section className="px-5 pt-6" aria-label="왜 위로가 되었는지">
-        <label className="mb-3 block text-sm font-medium text-foreground">
-          왜 위로가 되었나요? <span className="text-destructive">*</span>
-        </label>
-        <textarea
-          value={whyItComforted}
-          onChange={handleWhyItComfortedChange}
-          placeholder="이 콘텐츠/링크가 왜 위로가 되었는지 설명해주세요. (최소 10자)"
-          maxLength={200}
-          rows={4}
-          className={`w-full resize-none rounded-2xl border bg-card p-4 text-sm leading-relaxed text-card-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 ${
-            hasBlockedWordsInWhy
-              ? "border-destructive focus:border-destructive focus:ring-destructive/20"
-              : "border-border focus:border-primary/50 focus:ring-primary/20"
-          }`}
-        />
-        <div className="mt-2 flex items-center justify-between">
-          <span
-            className={`text-xs ${
-              hasBlockedWordsInWhy
-                ? "text-destructive"
-                : whyItComforted.length < 10
-                ? "text-amber-600"
-                : "text-muted-foreground"
-            }`}
-          >
-            {hasBlockedWordsInWhy
-              ? "부적절한 단어가 포함되어 있습니다."
-              : whyItComforted.length < 10
-              ? `최소 10자 이상 작성해주세요. (${whyItComforted.length}/10)`
-              : `${whyItComforted.length}/200`}
           </span>
         </div>
       </section>
