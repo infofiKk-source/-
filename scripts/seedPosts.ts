@@ -152,7 +152,7 @@ async function isDuplicate(link: string, reason: string): Promise<boolean> {
 }
 
 // 메인 실행 함수
-async function seedPosts() {
+async function runSeedPosts() {
   console.log("🌱 Firestore posts 시드 데이터 추가 시작...\n")
 
   let insertedCount = 0
@@ -218,7 +218,7 @@ async function seedPosts() {
 }
 
 // 스크립트 실행
-seedPosts()
+runSeedPosts()
   .then(() => {
     console.log("\n✨ 시드 데이터 추가 완료!")
     process.exit(0)

@@ -98,13 +98,15 @@ export async function getPosts(
     const orderField = sortBy === "popular" ? "reactions_count" : "created_at"
     const orderDirection: "asc" | "desc" = "desc"
     
+    // 새 스키마(emotionTags)와 기존 스키마(mood_tags) 모두 지원
+    // Firestore는 하나의 쿼리에서 하나의 필드만 필터링할 수 있으므로
+    // 더 많이 가져온 후 클라이언트에서 필터링
     if (mood) {
-      // 감정 필터 + 정렬
+      // 필터링을 위해 더 많이 가져오기 (클라이언트에서 필터링)
       q = query(
         collection(db, "posts"),
-        where("mood_tags", "array-contains", mood),
         orderBy(orderField, orderDirection),
-        limit(limitCount)
+        limit(limitCount * 3) // 필터링을 위해 더 많이 가져오기
       )
     } else {
       // 전체 + 정렬
@@ -119,13 +121,59 @@ export async function getPosts(
     const posts: Post[] = []
     
     querySnapshot.forEach((doc) => {
-      posts.push({
+      const data = doc.data()
+      
+      // 감정 태그 필터링 (mood 파라미터가 있을 때)
+      const emotionTags = data.emotionTags || data.mood_tags || []
+      if (mood && !emotionTags.includes(mood)) {
+        return // 필터링 조건에 맞지 않으면 건너뛰기
+      }
+      
+      // 새로운 스키마(emotionTags, reason, empathyCount 등)를 기존 스키마로 변환
+      const convertedData: Post = {
         id: doc.id,
-        ...doc.data(),
-      } as Post)
+        mood_tags: emotionTags,
+        body: data.reason || data.body || "", // 새로운 스키마의 reason을 body로 매핑
+        link: data.link || undefined,
+        created_at: data.createdAt || data.created_at || new Date(), // 새로운 스키마의 createdAt을 created_at으로 매핑
+        reactions_count: data.empathyCount !== undefined ? data.empathyCount : (data.reactions_count || 0), // 새로운 스키마의 empathyCount를 reactions_count로 매핑
+        comments_count: data.comments_count || 0,
+        user_id: data.user_id || data.authorName || "익명", // 새로운 스키마의 authorName을 user_id로 매핑 (임시)
+      }
+      
+      // whyItComforted 필드가 있으면 추가
+      if (data.whyItComforted) {
+        convertedData.whyItComforted = data.whyItComforted
+      }
+      
+      posts.push(convertedData)
     })
     
-    return posts
+    // 필터링 후 limit 적용
+    const filteredPosts = mood 
+      ? posts.filter(p => p.mood_tags.includes(mood))
+      : posts
+    
+    // 정렬 (새 스키마 데이터도 포함하여 정렬)
+    const sortedPosts = filteredPosts.sort((a, b) => {
+      if (sortBy === "popular") {
+        return b.reactions_count - a.reactions_count
+      } else {
+        const aTime = a.created_at instanceof Timestamp 
+          ? a.created_at.toMillis() 
+          : a.created_at instanceof Date 
+          ? a.created_at.getTime() 
+          : 0
+        const bTime = b.created_at instanceof Timestamp 
+          ? b.created_at.toMillis() 
+          : b.created_at instanceof Date 
+          ? b.created_at.getTime() 
+          : 0
+        return bTime - aTime
+      }
+    })
+    
+    return sortedPosts.slice(0, limitCount)
   } catch (error: any) {
     // Composite index 오류인 경우 안내
     if (error?.code === "failed-precondition") {
@@ -153,10 +201,25 @@ export async function getPost(postId: string) {
     }
     
     const doc = querySnapshot.docs[0]
-    return {
+    const data = doc.data()
+    
+    // 새로운 스키마를 기존 스키마로 변환
+    const convertedData: Post = {
       id: doc.id,
-      ...doc.data(),
-    } as Post
+      mood_tags: data.emotionTags || data.mood_tags || [],
+      body: data.reason || data.body || "",
+      link: data.link || undefined,
+      created_at: data.createdAt || data.created_at || new Date(),
+      reactions_count: data.empathyCount !== undefined ? data.empathyCount : (data.reactions_count || 0),
+      comments_count: data.comments_count || 0,
+      user_id: data.user_id || data.authorName || "익명",
+    }
+    
+    if (data.whyItComforted) {
+      convertedData.whyItComforted = data.whyItComforted
+    }
+    
+    return convertedData
   } catch (error) {
     console.error("글 가져오기 실패:", error)
     throw error
