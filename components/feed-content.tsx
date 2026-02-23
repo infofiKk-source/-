@@ -61,7 +61,7 @@ function FeedInner() {
           id: p.id || "",
           mood_tags: p.mood_tags,
           body: p.body,
-          link: p.link,
+          link: p.link || undefined, // undefined가 아닌 경우만 포함
           created_at: p.created_at instanceof Timestamp
             ? formatTimestamp(p.created_at)
             : typeof p.created_at === "string"

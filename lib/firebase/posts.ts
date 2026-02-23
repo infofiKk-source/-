@@ -17,12 +17,47 @@ export interface Post {
 // 새 글 작성
 export async function createPost(post: Omit<Post, "id" | "created_at" | "reactions_count" | "comments_count">) {
   try {
-    const docRef = await addDoc(collection(db, "posts"), {
-      ...post,
+    // 기본 필드만 포함 (undefined 필드는 절대 포함하지 않음)
+    const postData: Record<string, any> = {
+      mood_tags: post.mood_tags,
+      body: post.body,
+      user_id: post.user_id,
       created_at: Timestamp.now(),
       reactions_count: 0,
       comments_count: 0,
-    })
+    }
+
+    // link가 존재하고 빈 문자열이 아닐 때만 추가 (undefined/null 체크 포함)
+    // post.link가 undefined이거나 null이면 절대 필드를 추가하지 않음
+    if (post.link !== undefined && post.link !== null && typeof post.link === "string") {
+      const trimmedLink = post.link.trim()
+      if (trimmedLink.length > 0) {
+        postData.link = trimmedLink
+      }
+    }
+
+    // whyItComforted가 존재하고 빈 문자열이 아닐 때만 추가 (undefined/null 체크 포함)
+    if (post.whyItComforted !== undefined && post.whyItComforted !== null && typeof post.whyItComforted === "string") {
+      const trimmedWhyItComforted = post.whyItComforted.trim()
+      if (trimmedWhyItComforted.length > 0) {
+        postData.whyItComforted = trimmedWhyItComforted
+      }
+    }
+
+    // 최종 검증: undefined 필드 제거 (안전장치)
+    const finalPostData: Record<string, any> = {}
+    for (const key in postData) {
+      if (postData[key] !== undefined) {
+        finalPostData[key] = postData[key]
+      }
+    }
+
+    // 디버깅: 저장할 데이터 확인
+    console.log("📝 저장할 데이터:", JSON.stringify(finalPostData, null, 2))
+    console.log("🔍 link 필드 확인:", finalPostData.link === undefined ? "undefined (필드 없음 ✅)" : `"${finalPostData.link}"`)
+
+    // addDoc에 전달 (undefined 필드는 절대 포함되지 않음)
+    const docRef = await addDoc(collection(db, "posts"), finalPostData)
     return docRef.id
   } catch (error) {
     console.error("글 작성 실패:", error)

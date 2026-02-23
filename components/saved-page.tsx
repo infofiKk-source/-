@@ -46,7 +46,7 @@ export function SavedPage() {
                 id: post.id || "",
                 mood_tags: post.mood_tags,
                 body: post.body,
-                link: post.link,
+                link: post.link || undefined, // undefined가 아닌 경우만 포함
                 created_at:
                   post.created_at instanceof Timestamp
                     ? formatTimestamp(post.created_at)

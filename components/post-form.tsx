@@ -105,13 +105,25 @@ export function PostForm() {
         throw new Error("로그인에 실패했습니다.")
       }
       
-      // Firebase에 글 저장
-      await createPost({
+      // Firebase에 글 저장 (link 필드는 조건부로만 추가)
+      const postData: {
+        mood_tags: Emotion[]
+        body: string
+        user_id: string
+      } = {
         mood_tags: selectedMoods,
         body: content.trim() || "", // 마음속 이야기 (없으면 빈 문자열)
-        link: link.trim() || undefined, // 링크가 있으면 저장, 없으면 undefined
         user_id: user.uid,
-      })
+      }
+
+      // 링크가 존재하고 빈 문자열이 아닐 때만 추가 (undefined를 절대 보내지 않음)
+      const trimmedLink = link?.trim()
+      if (trimmedLink && trimmedLink.length > 0) {
+        // 타입 단언을 사용하여 link 필드 추가
+        ;(postData as any).link = trimmedLink
+      }
+
+      await createPost(postData)
       
       setSubmitted(true)
       setTimeout(() => {
