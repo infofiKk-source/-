@@ -7,28 +7,36 @@ import { EmotionBadge } from "@/components/emotion-tag"
 import type { Post } from "@/src/data/sample"
 import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
 import { addReaction, getReaction } from "@/lib/firebase/reactions"
+import { savePost, unsavePost, getSavedPost } from "@/lib/firebase/saved"
+import { Bookmark } from "lucide-react"
 
 export function CommunityCard({ post }: { post: Post }) {
   const [reported, setReported] = useState(false)
   const [empathized, setEmpathized] = useState(false)
   const [reactionCount, setReactionCount] = useState(post.reactions_count || 0)
   const [isReacting, setIsReacting] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // 공감 상태 확인
+  // 공감 상태 및 저장 상태 확인
   useEffect(() => {
-    const checkReaction = async () => {
+    const checkStatus = async () => {
       if (!post.id) return
       try {
         const user = getCurrentUser()
         if (user) {
-          const reaction = await getReaction(post.id, user.uid)
+          const [reaction, saved] = await Promise.all([
+            getReaction(post.id, user.uid),
+            getSavedPost(user.uid, post.id),
+          ])
           setEmpathized(!!reaction)
+          setIsSaved(!!saved)
         }
       } catch (error) {
         // 에러 무시 (로그인 안 된 상태일 수 있음)
       }
     }
-    checkReaction()
+    checkStatus()
   }, [post.id])
 
   const handleReport = (e: React.MouseEvent) => {
@@ -86,6 +94,42 @@ export function CommunityCard({ post }: { post: Post }) {
     }
   }
 
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!post.id || isSaving) return
+
+    setIsSaving(true)
+    try {
+      let user = getCurrentUser()
+      if (!user) {
+        user = await signInAnonymouslyUser()
+      }
+
+      if (!user) {
+        alert("로그인이 필요합니다.")
+        setIsSaving(false)
+        return
+      }
+
+      if (isSaved) {
+        await unsavePost(user.uid, post.id)
+        setIsSaved(false)
+      } else {
+        await savePost(user.uid, post.id)
+        setIsSaved(true)
+      }
+    } catch (error: any) {
+      console.error("저장 실패:", error)
+      if (error.message !== "이미 저장한 게시글입니다.") {
+        alert(error.message || "저장에 실패했습니다.")
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const summary = post.body.length > 100 ? post.body.substring(0, 100) + "..." : post.body
 
   return (
@@ -97,6 +141,19 @@ export function CommunityCard({ post }: { post: Post }) {
           )}
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{post.created_at}</span>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors disabled:opacity-50 ${
+                isSaved ? "text-primary" : "text-foreground"
+              }`}
+              aria-label={isSaved ? "저장 해제" : "저장하기"}
+            >
+              <Bookmark
+                className={`h-3.5 w-3.5 ${isSaved ? "fill-primary" : ""}`}
+              />
+            </button>
             <button
               type="button"
               onClick={handleReport}

@@ -1,6 +1,7 @@
 import { BottomNav } from "@/components/bottom-nav"
-import { Heart, PenLine, BookOpen, MessageSquare } from "lucide-react"
+import { PenLine, BookOpen, MessageSquare, Bookmark } from "lucide-react"
 import Link from "next/link"
+import { ProfileStats } from "@/components/profile-stats"
 
 export default function ProfilePage() {
   return (
@@ -31,25 +32,7 @@ export default function ProfilePage() {
         </section>
 
         {/* Stats */}
-        <section className="px-5 pt-6">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-4">
-              <PenLine className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold text-card-foreground">12</span>
-              <span className="text-xs text-muted-foreground">작성한 글</span>
-            </div>
-            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-4">
-              <Heart className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold text-card-foreground">48</span>
-              <span className="text-xs text-muted-foreground">받은 공감</span>
-            </div>
-            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-4">
-              <BookOpen className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold text-card-foreground">7</span>
-              <span className="text-xs text-muted-foreground">읽은 콘텐츠</span>
-            </div>
-          </div>
-        </section>
+        <ProfileStats />
 
         {/* Quick Actions */}
         <section className="px-5 pt-6">
