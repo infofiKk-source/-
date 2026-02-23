@@ -11,6 +11,7 @@ import { containsBlockedWords } from "@/lib/utils"
 import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
 import { createPost } from "@/lib/firebase/posts"
 import { LinkPreviewCard } from "@/components/link-preview-card"
+import { saveRecentEmotion } from "@/lib/utils/emotion-storage"
 
 export function PostForm() {
   const router = useRouter()
@@ -64,6 +65,8 @@ export function PostForm() {
       if (prev.includes(emotion)) {
         return prev.filter((m) => m !== emotion)
       } else {
+        // 최근 선택 감정 저장
+        saveRecentEmotion(emotion)
         return [...prev, emotion]
       }
     })

@@ -11,6 +11,7 @@ import { DailyComfortCard } from "@/components/daily-comfort-card"
 import { PopularContentsSection } from "@/components/popular-contents-section"
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/firebase/auth"
+import { saveRecentEmotion } from "@/lib/utils/emotion-storage"
 
 export function HomeHero() {
   const router = useRouter()
@@ -78,6 +79,10 @@ export function HomeHero() {
               onClick={() => {
                 const newSelected = selectedEmotion === emotion.label ? null : emotion.label
                 setSelectedEmotion(newSelected)
+                // 최근 선택 감정 저장
+                if (newSelected) {
+                  saveRecentEmotion(newSelected)
+                }
               }}
             />
           ))}
