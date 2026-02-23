@@ -9,6 +9,7 @@ import { EmotionTag } from "@/components/emotion-tag"
 import { HelpNotice } from "@/components/help-notice"
 import { DailyComfortCard } from "@/components/daily-comfort-card"
 import Link from "next/link"
+import { getCurrentUser } from "@/lib/firebase/auth"
 
 export function HomeHero() {
   const router = useRouter()
@@ -101,6 +102,14 @@ export function HomeHero() {
           <span>위로 받으러 가기</span>
           <ArrowRight className="h-4 w-4" />
         </button>
+        {!getCurrentUser() && (
+          <Link
+            href="/auth"
+            className="mt-3 flex w-full items-center justify-center rounded-2xl border border-border bg-card px-6 py-4 text-sm font-medium text-card-foreground transition-colors hover:bg-muted"
+          >
+            로그인 / 회원가입
+          </Link>
+        )}
       </section>
 
       {/* Gentle encouragement */}
