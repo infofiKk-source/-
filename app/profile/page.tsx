@@ -1,5 +1,6 @@
 import { BottomNav } from "@/components/bottom-nav"
-import { Heart, PenLine, BookOpen } from "lucide-react"
+import { Heart, PenLine, BookOpen, MessageSquare } from "lucide-react"
+import Link from "next/link"
 
 export default function ProfilePage() {
   return (
@@ -48,6 +49,44 @@ export default function ProfilePage() {
               <span className="text-xs text-muted-foreground">읽은 콘텐츠</span>
             </div>
           </div>
+        </section>
+
+        {/* Quick Actions */}
+        <section className="px-5 pt-6">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">
+            빠른 메뉴
+          </h2>
+          <Link
+            href="/dm"
+            className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/50"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <MessageSquare className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-base font-semibold text-card-foreground">
+                내 메시지
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                여태까지 나눈 익명 대화를 확인해보세요
+              </p>
+            </div>
+            <div className="shrink-0">
+              <svg
+                className="h-5 w-5 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </div>
+          </Link>
         </section>
 
         {/* Recent emotions */}
