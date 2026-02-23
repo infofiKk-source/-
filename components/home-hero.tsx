@@ -7,6 +7,8 @@ import { emotions } from "@/lib/data"
 import type { Emotion } from "@/lib/data"
 import { EmotionTag } from "@/components/emotion-tag"
 import { HelpNotice } from "@/components/help-notice"
+import { DailyComfortCard } from "@/components/daily-comfort-card"
+import Link from "next/link"
 
 export function HomeHero() {
   const router = useRouter()
@@ -35,6 +37,20 @@ export function HomeHero() {
           <span className="text-primary">마음을 채우고 있나요?</span>
         </h1>
       </header>
+
+      {/* Daily Comfort Card */}
+      <section className="px-6 mb-6">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-sm font-medium text-muted-foreground">오늘의 위로</p>
+          <Link
+            href="/daily"
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            더 보기
+          </Link>
+        </div>
+        <DailyComfortCard mood={selectedEmotion} showShareButton={true} />
+      </section>
 
       {/* Emotion selection */}
       <section className="px-6" aria-label="감정 선택">
