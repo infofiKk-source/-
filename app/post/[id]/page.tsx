@@ -29,6 +29,7 @@ export default async function PostPage({
           : "방금 전",
         reactions_count: firebasePost.reactions_count || 0,
         comments_count: firebasePost.comments_count || 0,
+        authorId: firebasePost.user_id, // DM을 위한 작성자 ID
       }
     }
   } catch (error) {

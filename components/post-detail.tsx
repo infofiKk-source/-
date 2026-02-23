@@ -14,6 +14,10 @@ import { addReaction, getReaction, subscribeReactionCount } from "@/lib/firebase
 import { getContentsByMood, type Content as FirebaseContent } from "@/lib/firebase/contents"
 import { contents as sampleContents } from "@/src/data/sample"
 import { ContentCard } from "@/components/content-card"
+import { getOrCreateConversation } from "@/lib/firebase/conversations"
+import { isEitherBlocked } from "@/lib/firebase/blocks"
+import { useRouter } from "next/navigation"
+import { MessageSquare } from "lucide-react"
 import { Timestamp } from "firebase/firestore"
 
 interface PostDetailProps {
@@ -21,6 +25,7 @@ interface PostDetailProps {
 }
 
 export function PostDetail({ post }: PostDetailProps) {
+  const router = useRouter()
   const [empathized, setEmpathized] = useState(false)
   const [empathyCount, setEmpathyCount] = useState(post.reactions_count || 0)
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null) // Optimistic update용
@@ -34,6 +39,8 @@ export function PostDetail({ post }: PostDetailProps) {
   const [recommendedContents, setRecommendedContents] = useState<typeof sampleContents>([])
   const [contentsLoading, setContentsLoading] = useState(true)
   const [contentsError, setContentsError] = useState<string | null>(null)
+  const [isBlocked, setIsBlocked] = useState(false)
+  const [isDMLoading, setIsDMLoading] = useState(false)
 
   // 실시간 공감 수 구독
   useEffect(() => {
@@ -81,6 +88,12 @@ export function PostDetail({ post }: PostDetailProps) {
         // 공감 상태 확인
         const reaction = await getReaction(post.id, user.uid)
         setEmpathized(!!reaction)
+
+        // 차단 확인 (DM 버튼 표시 여부)
+        if (post.authorId && post.authorId !== user.uid) {
+          const blocked = await isEitherBlocked(user.uid, post.authorId)
+          setIsBlocked(blocked)
+        }
 
         // 댓글 목록 가져오기
         const firebaseComments = await getComments(post.id)
@@ -470,6 +483,51 @@ export function PostDetail({ post }: PostDetailProps) {
             <MessageCircle className="h-4 w-4" />
             <span>{post.comments_count + comments.length}</span>
           </span>
+          {/* DM 버튼 (Firebase post이고 차단되지 않은 경우만 표시) */}
+          {post.authorId && !isBlocked && (
+            <button
+              type="button"
+              onClick={async () => {
+                setIsDMLoading(true)
+                try {
+                  const user = getCurrentUser()
+                  if (!user) {
+                    await signInAnonymouslyUser()
+                    const currentUser = getCurrentUser()
+                    if (!currentUser) {
+                      throw new Error("로그인에 실패했습니다.")
+                    }
+                  }
+
+                  const currentUser = getCurrentUser()
+                  if (!currentUser || !post.authorId) return
+
+                  // 자기 자신에게는 DM 보낼 수 없음
+                  if (currentUser.uid === post.authorId) {
+                    alert("자기 자신에게는 메시지를 보낼 수 없습니다.")
+                    setIsDMLoading(false)
+                    return
+                  }
+
+                  const conversationId = await getOrCreateConversation(
+                    currentUser.uid,
+                    post.authorId
+                  )
+                  router.push(`/dm/${conversationId}`)
+                } catch (error: any) {
+                  console.error("DM 생성 실패:", error)
+                  alert("메시지를 시작하는데 실패했습니다.")
+                } finally {
+                  setIsDMLoading(false)
+                }
+              }}
+              disabled={isDMLoading}
+              className="flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-all hover:bg-primary/20 disabled:opacity-50"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>{isDMLoading ? "처리 중..." : "익명으로 DM"}</span>
+            </button>
+          )}
         </div>
       </article>
 
