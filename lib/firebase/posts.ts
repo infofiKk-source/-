@@ -6,6 +6,7 @@ export interface Post {
   id?: string
   mood_tags: Emotion[]
   body: string
+  whyItComforted?: string // 왜 위로가 되었는지 (선택사항)
   link?: string // 관련 링크 (선택사항)
   created_at: Timestamp | Date
   reactions_count: number
