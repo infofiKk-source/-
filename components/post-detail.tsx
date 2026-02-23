@@ -20,6 +20,8 @@ import { useRouter } from "next/navigation"
 import { MessageSquare } from "lucide-react"
 import { Timestamp } from "firebase/firestore"
 import { LinkPreviewCard } from "@/components/link-preview-card"
+import { AIResponseSection } from "@/components/ai-response-section"
+import { SimilarPostsSection } from "@/components/similar-posts-section"
 
 interface PostDetailProps {
   post: Post
@@ -430,6 +432,9 @@ export function PostDetail({ post }: PostDetailProps) {
           </div>
         )}
 
+        {/* AI Response Section */}
+        <AIResponseSection emotions={post.mood_tags} userMessage={post.body} />
+
         {/* Empathy bar */}
         <div className="mt-6 flex items-center gap-4 border-y border-border py-3">
           <button
@@ -504,6 +509,15 @@ export function PostDetail({ post }: PostDetailProps) {
           )}
         </div>
       </article>
+
+      {/* Similar Posts Section */}
+      <SimilarPostsSection
+        currentPost={{
+          id: post.id,
+          mood_tags: post.mood_tags,
+          body: post.body,
+        }}
+      />
 
       {/* Comments */}
       <section className="px-5 pt-5" aria-label="댓글">
