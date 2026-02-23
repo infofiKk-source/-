@@ -12,6 +12,7 @@ import { PopularContentsSection } from "@/components/popular-contents-section"
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/firebase/auth"
 import { saveRecentEmotion } from "@/lib/utils/emotion-storage"
+import { CatCharacter } from "@/components/cat-character"
 
 export function HomeHero() {
   const router = useRouter()
@@ -137,6 +138,9 @@ export function HomeHero() {
       <div className="px-6 pt-6">
         <HelpNotice />
       </div>
+
+      {/* Cat Character - 오른쪽 하단 */}
+      <CatCharacter size="small" position="bottom-right" />
     </div>
   )
 }

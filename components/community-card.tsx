@@ -18,6 +18,7 @@ export function CommunityCard({ post }: { post: Post }) {
   const [isReacting, setIsReacting] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false)
 
   // 공감 상태 및 저장 상태 확인
   useEffect(() => {
@@ -84,6 +85,10 @@ export function CommunityCard({ post }: { post: Post }) {
       await addReaction(post.id, user.uid)
       setEmpathized(true)
       setReactionCount((c) => c + 1)
+      
+      // 하트 애니메이션 표시
+      setShowHeartAnimation(true)
+      setTimeout(() => setShowHeartAnimation(false), 1500)
     } catch (error: any) {
       if (error.message === "이미 공감했습니다.") {
         setEmpathized(true)
@@ -185,7 +190,7 @@ export function CommunityCard({ post }: { post: Post }) {
               type="button"
               onClick={handleEmpathy}
               disabled={empathized || isReacting}
-              className={`inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
+              className={`relative inline-flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${
                 empathized
                   ? "text-primary"
                   : "text-muted-foreground hover:text-primary"
@@ -197,6 +202,11 @@ export function CommunityCard({ post }: { post: Post }) {
                 }`}
               />
               {reactionCount}
+              {showHeartAnimation && (
+                <div className="absolute -top-2 -right-2 animate-bounce">
+                  <Heart className="w-3 h-3 fill-primary text-primary animate-pulse" />
+                </div>
+              )}
             </button>
             <Link
               href={`/post/${post.id}`}

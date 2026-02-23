@@ -12,6 +12,7 @@ import { signInAnonymouslyUser, getCurrentUser } from "@/lib/firebase/auth"
 import { createPost } from "@/lib/firebase/posts"
 import { LinkPreviewCard } from "@/components/link-preview-card"
 import { saveRecentEmotion } from "@/lib/utils/emotion-storage"
+import { CatCharacter } from "@/components/cat-character"
 
 export function PostForm() {
   const router = useRouter()
@@ -315,6 +316,9 @@ export function PostForm() {
           </p>
         </div>
       </section>
+
+      {/* Cat Character - 하단 우측 */}
+      <CatCharacter size="small" position="bottom-right" />
     </div>
   )
 }

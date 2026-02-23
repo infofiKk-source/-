@@ -22,6 +22,7 @@ import { Timestamp } from "firebase/firestore"
 import { LinkPreviewCard } from "@/components/link-preview-card"
 import { AIResponseSection } from "@/components/ai-response-section"
 import { SimilarPostsSection } from "@/components/similar-posts-section"
+import { CatCharacter } from "@/components/cat-character"
 
 interface PostDetailProps {
   post: Post
@@ -32,6 +33,7 @@ export function PostDetail({ post }: PostDetailProps) {
   const [empathized, setEmpathized] = useState(false)
   const [empathyCount, setEmpathyCount] = useState(post.reactions_count || 0)
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null) // Optimistic update용
+  const [showCatHeart, setShowCatHeart] = useState(false) // 고양이 하트 애니메이션
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [hasBlockedWords, setHasBlockedWords] = useState(false)
@@ -244,6 +246,9 @@ export function PostDetail({ post }: PostDetailProps) {
     setOptimisticCount(previousCount + 1)
     setEmpathyCount(previousCount + 1)
     setEmpathized(true)
+    
+    // 고양이 하트 애니메이션 표시
+    setShowCatHeart(true)
 
     try {
       await addReaction(post.id, user.uid)
@@ -620,6 +625,14 @@ export function PostDetail({ post }: PostDetailProps) {
       <div className="px-5 pt-6 pb-32">
         <HelpNotice />
       </div>
+
+      {/* Cat Character - 공감 버튼 클릭 시 하트 애니메이션 */}
+      <CatCharacter 
+        size="small" 
+        position="bottom-right" 
+        showHeartAnimation={showCatHeart}
+        className="mb-16"
+      />
 
       {/* Comment input - fixed bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md">
